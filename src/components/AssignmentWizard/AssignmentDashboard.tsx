@@ -429,6 +429,7 @@ export default function AssignmentDashboard({
   const [sessionSearch, setSessionSearch] = useState('');
   const [sessionFormatFilter, setSessionFormatFilter] = useState<string>('all');
   const [sessionTimeFilters, setSessionTimeFilters] = useState<{ id: string; day: string; time: string }[]>([]);
+  const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
 
   const addSessionTimeFilter = () => {
     setSessionTimeFilters(prev => [
@@ -668,13 +669,28 @@ export default function AssignmentDashboard({
       if (s.id === targetSessionId) {
         let newTime = s.time;
         if (matchKeys && matchKeys.length > 0) {
-          const fakeTimingsObj: any = {};
-          matchKeys.forEach(k => fakeTimingsObj[k] = true);
-          const formatted = getFormattedTimings(fakeTimingsObj, lang);
+          const DAYS_MAP: any = { Sunday: 'الأحد', Monday: 'الاثنين', Monday_real: 'الاثنين', Tuesday: 'الثلاثاء', Wednesday: 'الأربعاء', Thursday: 'الخميس', Friday: 'الجمعة', Saturday: 'السبت' };
+          const DAYS_MAP_EN: any = { Sunday: 'Sunday', Monday: 'Monday', Monday_real: 'Monday', Tuesday: 'Tuesday', Wednesday: 'Wednesday', Thursday: 'Thursday', Friday: 'Friday', Saturday: 'Saturday' };
+          const SLOTS_MAP: any = { Fajr: 'فجرية', 'Fajr (online)': 'فجرية', '8:00-9:15': '8:15-9:30', '10:00-11:15': '10:15-11:30', '12:00-1:15': '12:15-1:30', '2:15-3:30': '2:15-3:30', '4:15-5:30': '4:15-5:30', '8:15-9:30': '8:15-9:30', '10:15-11:30': '10:15-11:30', '12:15-1:30': '12:15-1:30', '8:00-9:15PM': '8:00-9:15 م'};
+          const SLOTS_MAP_EN: any = { Fajr: 'Fajr', 'Fajr (online)': 'Fajr', '8:00-9:15': '8:15-9:30', '10:00-11:15': '10:15-11:30', '12:00-1:15': '12:15-1:30', '2:15-3:30': '2:15-3:30', '4:15-5:30': '4:15-5:30', '8:15-9:30': '8:15-9:30', '10:15-11:30': '10:15-11:30', '12:15-1:30': '12:15-1:30', '8:00-9:15PM': '8:00-9:15 PM'};
+          
+          const getD = (d: string) => lang === 'ar' ? (DAYS_MAP[d] || d) : (DAYS_MAP_EN[d] || d);
+          const getT = (t: string) => lang === 'ar' ? (SLOTS_MAP[t] || t) : (SLOTS_MAP_EN[t] || t);
+          
+          let dayParts: string[] = [];
+          let timePart = '';
+          matchKeys.forEach(k => {
+             const parts = k.split('_');
+             if(parts.length >= 2) {
+                 const td = getD(parts[0]);
+                 if(!dayParts.includes(td)) dayParts.push(td);
+                 timePart = getT(parts[1]); 
+             }
+          });
+          
+          newTime = `${dayParts.join('/')} | ${timePart}`;
           if (matchKeys.length === 1) {
-            newTime = `${formatted} | ${lang === 'ar' ? 'لم يحدد بعد' : 'To be announced'}`;
-          } else {
-            newTime = formatted;
+             newTime = `${newTime} | ${lang === 'ar' ? 'لم يحدد بعد' : 'To be announced'}`;
           }
         }
 
@@ -920,13 +936,35 @@ export default function AssignmentDashboard({
         timings: st._tKeys
       }));
       
-      // format matched times
-      const fakeTimingsObj: any = {};
-      matchedKeys.forEach(k => fakeTimingsObj[k] = true);
-      let sessionTime = matchedKeys.length > 0 ? getFormattedTimings(fakeTimingsObj, lang) : (lang === 'ar' ? 'سيعلن لاحقاً (لم يتم التعيين بعد)' : 'TBD (No placement)');
-      if (matchedKeys.length === 1) {
-         sessionTime = `${sessionTime} | ${lang === 'ar' ? 'لم يحدد بعد' : 'To be announced'}`;
-      }
+      const formatSessionTime = (keys: string[]) => {
+          if (keys.length === 0) return lang === 'ar' ? 'سيعلن لاحقاً (لم يتم التعيين بعد)' : 'TBD (No placement)';
+          const DAYS_MAP: any = { Sunday: 'الأحد', Monday: 'الاثنين', Monday_real: 'الاثنين', Tuesday: 'الثلاثاء', Wednesday: 'الأربعاء', Thursday: 'الخميس', Friday: 'الجمعة', Saturday: 'السبت' };
+          const DAYS_MAP_EN: any = { Sunday: 'Sunday', Monday: 'Monday', Monday_real: 'Monday', Tuesday: 'Tuesday', Wednesday: 'Wednesday', Thursday: 'Thursday', Friday: 'Friday', Saturday: 'Saturday' };
+          const SLOTS_MAP: any = { Fajr: 'فجرية', 'Fajr (online)': 'فجرية', '8:00-9:15': '8:15-9:30', '10:00-11:15': '10:15-11:30', '12:00-1:15': '12:15-1:30', '2:15-3:30': '2:15-3:30', '4:15-5:30': '4:15-5:30', '8:15-9:30': '8:15-9:30', '10:15-11:30': '10:15-11:30', '12:15-1:30': '12:15-1:30', '8:00-9:15PM': '8:00-9:15 م'};
+          const SLOTS_MAP_EN: any = { Fajr: 'Fajr', 'Fajr (online)': 'Fajr', '8:00-9:15': '8:15-9:30', '10:00-11:15': '10:15-11:30', '12:00-1:15': '12:15-1:30', '2:15-3:30': '2:15-3:30', '4:15-5:30': '4:15-5:30', '8:15-9:30': '8:15-9:30', '10:15-11:30': '10:15-11:30', '12:15-1:30': '12:15-1:30', '8:00-9:15PM': '8:00-9:15 PM'};
+          
+          const getD = (d: string) => lang === 'ar' ? (DAYS_MAP[d] || d) : (DAYS_MAP_EN[d] || d);
+          const getT = (t: string) => lang === 'ar' ? (SLOTS_MAP[t] || t) : (SLOTS_MAP_EN[t] || t);
+          
+          let dayParts: string[] = [];
+          let timePart = '';
+          keys.forEach(k => {
+             const parts = k.split('_');
+             if(parts.length >= 2) {
+                 const td = getD(parts[0]);
+                 if(!dayParts.includes(td)) dayParts.push(td);
+                 timePart = getT(parts[1]); 
+             }
+          });
+          
+          let sess = `${dayParts.join('/')} | ${timePart}`;
+          if (keys.length === 1) {
+             sess = `${sess} | ${lang === 'ar' ? 'لم يحدد بعد' : 'To be announced'}`;
+          }
+          return sess;
+      };
+
+      let sessionTime = formatSessionTime(matchedKeys);
 
       proposedDraft.push({
         id: `draft_sess_${format}_${idx}_` + Date.now(),
@@ -2310,6 +2348,40 @@ export default function AssignmentDashboard({
                     <Plus className="w-4 h-4" />
                     <span>{lang === 'ar' ? 'حلقة يدوية جديدة' : 'Create manually'}</span>
                   </button>
+                  
+                  {sessions.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (selectedSessions.length === processedSessions.length) {
+                             setSelectedSessions([]);
+                          } else {
+                             setSelectedSessions(processedSessions.map(s => s.id));
+                          }
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-[11px] font-black shadow-sm transition-colors cursor-pointer"
+                      >
+                        {selectedSessions.length === processedSessions.length
+                          ? (lang === 'ar' ? 'إلغاء التحديد' : 'Deselect All')
+                          : (lang === 'ar' ? 'تحديد الكل' : 'Select All')}
+                      </button>
+
+                      {selectedSessions.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف الحلقات المحددة؟ سيفقد الطلاب مقاعدهم في هذه الحلقات.' : 'Are you sure you want to delete selected classes? Students will lose their seats.')) {
+                               setSessions(prev => prev.filter(s => !selectedSessions.includes(s.id)));
+                               setSelectedSessions([]);
+                            }
+                          }}
+                          className="bg-red-50 hover:bg-red-100 border border-red-200 text-red-650 px-4 py-2.5 rounded-xl text-[11px] font-black shadow-sm transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>{lang === 'ar' ? `حذف المحدد (${selectedSessions.length})` : `Delete Selected (${selectedSessions.length})`}</span>
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -2464,11 +2536,22 @@ export default function AssignmentDashboard({
                   : (lang === 'ar' ? '🏫 حضوري بالحرم' : '🏫 In-person');
 
                 return (
-                  <div key={idx} className="bg-white rounded-3xl border border-slate-200 shadow-3xs overflow-hidden hover:shadow-md transition-all flex flex-col justify-between">
+                  <div key={idx} className={`bg-white rounded-3xl border shadow-3xs overflow-hidden hover:shadow-md transition-all flex flex-col justify-between ${selectedSessions.includes(sess.id) ? 'border-brand-primary ring-2 ring-brand-primary/20' : 'border-slate-200'}`}>
                     <div>
                       {/* Class Banner - Clean white styled header with border-b */}
-                      <div className="p-5 bg-white border-b border-slate-100">
-                        <div className="flex justify-between items-center mb-1 bg-white">
+                      <div className="p-5 bg-white border-b border-slate-100 relative">
+                        <div className="absolute top-4 right-4 rtl:left-4 rtl:right-auto z-10">
+                           <input 
+                             type="checkbox" 
+                             checked={selectedSessions.includes(sess.id)}
+                             onChange={(e) => {
+                               if(e.target.checked) setSelectedSessions(prev => [...prev, sess.id]);
+                               else setSelectedSessions(prev => prev.filter(id => id !== sess.id));
+                             }}
+                             className="w-4 h-4 cursor-pointer accent-brand-primary rounded border-slate-300 focus:ring-brand-primary"
+                           />
+                        </div>
+                        <div className="flex justify-between items-center mb-1 bg-white pr-8 rtl:pl-8 rtl:pr-0">
                           <span className={`text-[10px] border rounded font-black px-2.5 py-0.5 shadow-3xs ${levelClasses}`}>
                             {levelText}
                           </span>
