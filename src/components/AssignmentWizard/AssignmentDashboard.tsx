@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from '../../lib/toast';
 import { 
   Users, 
   BookOpen, 
@@ -717,14 +718,14 @@ export default function AssignmentDashboard({
     }));
 
     setAssigningStudentId(null);
-    alert(lang === 'ar' ? 'تم تعيين الطالبة للحلقة بنجاح!' : 'Student placed in session successfully!');
+    toast.success(lang === 'ar' ? 'تم تعيين الطالبة للحلقة بنجاح!' : 'Student placed in session successfully!');
   };
 
   // Create Manual Session handler
   const handleCreateSession = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSessName || !newSessTeacher) {
-      alert(lang === 'ar' ? 'يرجى مراجعة ملء الحقول الإجبارية!' : 'Please fill all mandatory fields!');
+      toast.error(lang === 'ar' ? 'يرجى مراجعة ملء الحقول الإجبارية!' : 'Please fill all mandatory fields!');
       return;
     }
 
@@ -760,7 +761,7 @@ export default function AssignmentDashboard({
     setNewSessLocation('');
     setNewSessTime('');
     
-    alert(lang === 'ar' ? 'تم إنشاء الحلقة بنجاح' : 'Session created successfully!');
+    toast.success(lang === 'ar' ? 'تم إنشاء الحلقة بنجاح' : 'Session created successfully!');
   };
 
   // Mock API Trigger for Algorithm proposed drafts: Separated beautifully by format
@@ -993,7 +994,7 @@ export default function AssignmentDashboard({
 
     setIsRunningAlgorithm(false);
     setApiLogMessage('');
-    alert(
+    toast.success(
       lang === 'ar' 
         ? `نجاح! تلاوة الذكاء الاصطناعي قامت باقتراح مسودة جديدة للتوزيع لـ ${format === 'online' ? 'الشبكة الرقمية' : 'المقرأة الحضورية'}` 
         : `Success! Proposed ${proposedDraft.length} draft groups for ${format === 'online' ? 'Online digital' : 'Campus physical'} formats.`
@@ -1004,7 +1005,7 @@ export default function AssignmentDashboard({
   const handleConfirmDraftAssignments = async (format: 'in-person' | 'online') => {
     const targetDraft = format === 'in-person' ? inPersonDraft : onlineDraft;
     if (targetDraft.length === 0) {
-      alert(lang === 'ar' ? 'عفواً، لا توجد مسودة نشطة لاعتمادها' : 'No proposed draft exists to authorize!');
+      toast.error(lang === 'ar' ? 'عفواً، لا توجد مسودة نشطة لاعتمادها' : 'No proposed draft exists to authorize!');
       return;
     }
 
@@ -1072,7 +1073,7 @@ export default function AssignmentDashboard({
       localStorage.removeItem('itqan_online_draft');
     }
 
-    alert(lang === 'ar' ? 'تم حفظ وإطلاق مجموعات التلاوة بنجاح!' : 'Proposed classrooms committed and launched successfully!');
+    toast.success(lang === 'ar' ? 'تم حفظ وإطلاق مجموعات التلاوة بنجاح!' : 'Proposed classrooms committed and launched successfully!');
   };
 
   // Remove individual student from proposed drafts
@@ -2671,7 +2672,7 @@ export default function AssignmentDashboard({
                             );
                             if (confirmDelete) {
                               setSessions(prev => prev.filter(s => s.id !== sess.id));
-                              alert(lang === 'ar' ? 'تم حذف الحلقة' : 'Session Deleted');
+                              toast.error(lang === 'ar' ? 'تم حذف الحلقة' : 'Session Deleted');
                             }
                           }}
                           className="text-red-650 hover:bg-red-50 border border-red-100 bg-white hover:text-red-700 px-3 py-1.5 rounded-xl font-bold text-[10px] cursor-pointer"

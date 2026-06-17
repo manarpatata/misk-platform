@@ -23,6 +23,7 @@ export interface User {
   grandfatherName?: string;
   role: Role;
   email: string;
+  username?: string;
   isEnrolled: boolean;
   sessionId: string;
   phone?: string;
@@ -88,6 +89,7 @@ export interface Session {
   themeColor?: string;
   themePhoto?: string;
   isPast?: boolean;
+  format?: string;
 }
 
 export interface SemesterRegistration {

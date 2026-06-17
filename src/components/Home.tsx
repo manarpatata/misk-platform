@@ -15,6 +15,7 @@ import {
   MapPin,
   Laptop
 } from 'lucide-react';
+import { toast } from '../lib/toast';
 
 interface HomeProps {
   user: User | null;
@@ -323,7 +324,7 @@ export default function Home({
     // Check if at least one slot is selected
     const selectedKeys = Object.entries(timings).filter(([_, val]) => !!val);
     if (selectedKeys.length === 0) {
-      alert(tField(
+      toast.error(tField(
         'يرجى تحديد وقت واحد على الأقل لإرسال رغبات جدولك الدراسي!', 
         'Please select at least one hour on the calendar grid to submit your schedule!'
       ));
@@ -332,7 +333,7 @@ export default function Home({
 
     const activeSem = getActiveSemester();
     if (!activeSem) {
-      alert(tField(
+      toast.error(tField(
         'عذراً، لا يوجد تقديم للفصل الدراسي حالياً أو انتهى موعد التسجيل.',
         'Sorry, there is no active enrollment or the deadline has passed.'
       ));
@@ -349,7 +350,7 @@ export default function Home({
     };
 
     submitEnrollRequest(details, activeSem.id);
-    alert(tField(
+    toast.success(tField(
       'تم إرسال طلب تسجيل خيارات تلاوتك وتوقيتاتك بنجاح للفرز والمطابقة ببرنامج مسك بجامعة السلطان قابوس!', 
       'Your timing preferences and registration details have been successfully submitted!'
     ));
@@ -510,31 +511,60 @@ export default function Home({
           : ((activeSem.stopRegistrationStudentsTime && new Date(activeSem.stopRegistrationStudentsTime) <= now) || activeSem.stopRegistration || (activeSem.stopRegistrationTime && new Date(activeSem.stopRegistrationTime) <= now)));
         const isEnrolledInActiveSem = user.isEnrolled && user.enrollmentDetails && user.enrollmentDetails.semesterId === activeSem.id;
 
-        const showFormDirectly = !isRegistrationClosed && !isEnrolledInActiveSem;
+        const showFormDirectly = false; // Always show details card first
 
         if (isEnrolledInActiveSem) {
           return (
             /* Receipt / Registered schedule view card */
-            <div className="bg-white rounded-3xl border border-brand-primary/20 shadow-xl p-6 sm:p-8 text-start relative overflow-hidden animate-fade-in animate-duration-500">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500" />
+            <div id="enrolled_announcement" className="relative group bg-white rounded-3xl border border-emerald-500/50 shadow-3xs hover:border-emerald-500 overflow-hidden animate-fade-in transition-all duration-300">
               
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                  <CheckCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg sm:text-xl font-black text-brand-dark leading-snug mb-1">
-                    {isTeacher 
-                      ? tField(`تم تقديم رغبات ميعاد تدريس الحلقة بنجاح لـ (${activeSem.title})!`, `Teaching slot options successfully scheduled for (${activeSem.title})!`)
-                      : tField(`طلب الالتحاق بالحلقات نشط وجاري الفرز لـ (${activeSem.title})!`, `Recitation student enrollment is active for (${activeSem.title})!`)
-                    }
-                  </h3>
-                  <p className="text-xs text-emerald-600 font-extrabold mb-0 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                    {tField('جاري إعداد التوزيع والفرز الإلكتروني الآمن مع شؤون الحلقات', 'Status: Mapping coordinates with SQU automated harmony schedulers')}
-                  </p>
+              {/* Clean White Top Header Section */}
+              <div className="relative bg-slate-50/60 p-6 sm:p-8 border-b border-slate-100 overflow-hidden">
+                {/* Subtle Soft Glow */}
+                <div className="absolute top-0 right-0 -tr-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 -bl-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                
+                {/* Header Content */}
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4 bg-transparent text-start">
+                    {/* Consistent Soft Icon Container */}
+                    <div className="w-13 h-13 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 transition-transform duration-300 group-hover:scale-105 border border-emerald-500/20">
+                      <CheckCircle className="w-6.5 h-6.5" />
+                    </div>
+                    
+                    <div>
+                      {/* Quiet Active Status Badge */}
+                      <span className="inline-flex items-center gap-2 text-[10.5px] font-extrabold px-3 py-1 rounded-lg border transition-all duration-300 bg-emerald-50 text-emerald-700 border-emerald-150">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                        </span>
+                        <span className="tracking-wide font-sans">
+                          {tField('تمت العملية بنجاح - جاري الفرز', 'Successfully Submitted - In Progress')}
+                        </span>
+                      </span>
+                      
+                      {/* Title */}
+                      <h2 className="text-lg sm:text-xl font-black text-brand-dark mt-2 tracking-tight font-sans leading-tight">
+                        {isTeacher 
+                          ? tField(`تم تقديم رغبات التدريس لـ (${activeSem.title})`, `Teaching options scheduled for (${activeSem.title})`)
+                          : tField(`طلب الالتحاق نشط لـ (${activeSem.title})`, `Enrollment active for (${activeSem.title})`)
+                        }
+                      </h2>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {/* Main Body Section */}
+              <div className="p-6 sm:p-10 relative z-10 bg-white">
+                
+                {/* Blockquote-styled Description Container with brand theme borders */}
+                <div className="mb-6 p-5 bg-emerald-50/50 border-l-4 rtl:border-l-0 rtl:border-r-4 border-emerald-500/30 rounded-r-xl rtl:rounded-r-none rtl:rounded-l-xl text-emerald-800 leading-relaxed text-sm sm:text-base text-justify font-sans">
+                  <p className="font-bold text-emerald-700">
+                    {tField('جاري إعداد التوزيع والفرز الإلكتروني الآمن بناءً على معطياتك مع شؤون الحلقات.', 'Status: Mapping coordinates with SQU automated harmony schedulers based on your preferences.')}
+                  </p>
+                </div>
 
               {/* Details list */}
               <div className="bg-slate-50 border border-gray-150 rounded-2xl p-5 mb-6 space-y-4 font-bold text-xs sm:text-sm text-gray-650">
@@ -623,16 +653,18 @@ export default function Home({
                 </div>
               </div>
 
-              <div className="flex justify-between items-center select-none font-black text-xs text-gray-400">
+              {/* Footer CTA */}
+              <div className="flex flex-col sm:flex-row justify-between items-center select-none font-black text-xs text-gray-400 pt-6 border-t border-slate-100 gap-4 mt-6">
                 <span>{tField('تقديم الرغبات:', 'Submitted on:')} {user.enrollmentDetails.submittedAt}</span>
                 
                 <button 
                   onClick={handleResetRegistration}
-                  className="flex items-center gap-1.5 px-4 py-2 hover:bg-red-50 text-red-500 rounded-xl border border-transparent hover:border-red-150 transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-1.5 px-6 py-2.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-500 rounded-xl border border-transparent hover:border-red-150 transition-all duration-200 cursor-pointer w-full sm:w-auto justify-center"
                 >
                   <Undo2 className="w-4.5 h-4.5" />
                   <span>{tField('تعديل الحجز والرغبات', 'Edit Preferences & Resubmit')}</span>
                 </button>
+              </div>
               </div>
             </div>
           );

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from '../lib/toast';
 import { 
   User, 
   Session, 
@@ -157,66 +158,28 @@ export default function MySession({
   // Filter sessions for current user (past and present)
   let userSessions = sessions.filter(s => {
     if (user.role === 'ADMIN') return true;
-    if (user.role === 'TEACHER') {
-      return s.teacher.name.toLowerCase().includes(user.firstName.toLowerCase()) || 
-             s.teacher.name.toLowerCase().includes(user.lastName.toLowerCase());
-    }
-    // Student: match name or email, or s.id === user.sessionId
-    return s.id === user.sessionId || s.students.some(stud => 
-      stud.name.toLowerCase().includes(`${user.firstName} ${user.lastName}`.toLowerCase()) || 
-      (stud.email && stud.email.toLowerCase() === user.email.toLowerCase())
-    );
-  });
 
-  if (userSessions.length === 0 && user.role !== 'ADMIN') {
+    // Is this a current semester session? (Assuming session ID contains semester ID or checking isPast)
+    // Actually we can check semesters if we know how they are linked. The prompt says "until the admin assign users to session then click on the button on the semester announcement to announce final slots to teachers... and to students"
+    // Let's check session.semesterId if available. For now, rely on global spread settings for simplicity.
+    const spreadT = isSpreadTeachers;
+    const spreadS = isSpreadStudents;
+
     if (user.role === 'TEACHER') {
-      const sampleTeacherSession: Session = {
-        id: 'sample_teacher_session',
-        name: lang === 'ar' ? 'حلقة التلاوة المخصصة للمعلمة' : 'My Assigned Teaching Session',
-        themeColor: '#7C3AED',
-        themePhoto: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600',
-        teacher: {
-          name: `أ. ${user.firstName} ${user.lastName}`,
-          phone: user.phone || '+968 9988 7766'
-        },
-        location: lang === 'ar' ? 'مسجد الجامعة - القاعة ٢' : 'University Mosque - Hall 2',
-        time: lang === 'ar' ? 'الأحد والثلاثاء | 16:00 - 18:00' : 'Sunday & Tuesday | 16:00 - 18:00',
-        maxStudents: 15,
-        level: 'INTERMEDIATE',
-        students: [
-          { id: 's1', name: lang === 'ar' ? 'أمل الفارسية' : 'Amal Al-Farsia', money: 2850, avatar: 'https://picsum.photos/seed/s1/100/100', absencesExcused: 1, absencesUnexcused: 0, email: 'amel@student.squ.edu.om', phone: '+968 9776 5544', college: 'التربية', cohort: '2022' },
-          { id: 's2', name: lang === 'ar' ? 'زكية الهاشمية' : 'Zakia Al-Hashmia', money: 1200, avatar: 'https://picsum.photos/seed/s2/100/100', absencesExcused: 0, absencesUnexcused: 1, email: 'zakia@student.squ.edu.om', phone: '+968 9112 3344', college: 'التربية', cohort: '2023' }
-        ],
-        announcements: [
-          { id: 'sa1', text: lang === 'ar' ? 'أهلاً بطالباتنا في حلقة الفصل الجديد.' : 'Welcome to our recitation session.', type: 'text', date: '2026-06-16', author: `${user.firstName} ${user.lastName}` }
-        ]
-      };
-      userSessions = [sampleTeacherSession];
-    } else {
-      const sampleStudentSession: Session = {
-        id: 'sample_student_session',
-        name: lang === 'ar' ? 'حلقة مسك للتلاوة والإتقان' : 'Misk Recitation Hub',
-        themeColor: '#059669',
-        themePhoto: 'https://images.unsplash.com/photo-1564121211835-e88c852648ab?auto=format&fit=crop&q=80&w=600',
-        teacher: {
-          name: 'أ. عائشة الشكيلية',
-          phone: '+968 9222 3344'
-        },
-        location: lang === 'ar' ? 'عبر الأثير - مايكروسوفت تيمز' : 'Virtual Teams Meeting',
-        time: lang === 'ar' ? 'الإثنين والأربعاء | 10:00 - 12:00' : 'Monday & Wednesday | 10:00 - 12:00',
-        maxStudents: 10,
-        level: 'BEGINNER',
-        students: [
-          { id: 'usr_stud', name: `${user.firstName} ${user.lastName}`, money: user.money || 100, avatar: user.avatar || 'https://picsum.photos/seed/usr/100/100', absencesExcused: user.absencesExcused || 0, absencesUnexcused: user.absencesUnexcused || 0, email: user.email, phone: user.phone || '+968 9988 7766', college: user.college || 'العلوم', cohort: user.cohort || '2022' },
-          { id: 's2', name: lang === 'ar' ? 'زكية الهاشمية' : 'Zakia Al-Hashmia', money: 1200, avatar: 'https://picsum.photos/seed/s2/100/100', absencesExcused: 0, absencesUnexcused: 1, email: 'zakia@student.squ.edu.om', phone: '+968 9112 3344', college: 'التربية', cohort: '2023' }
-        ],
-        announcements: [
-          { id: 'sa1', text: lang === 'ar' ? 'يرجى الالتزام التام بالموعد والحضور المبكر.' : 'Please attend early and ensure a stable connection.', type: 'text', date: '2026-06-16', author: 'أ. عائشة الشكيلية' }
-        ]
-      };
-      userSessions = [sampleStudentSession];
+      const isAssignedTeacher = s.teacher?.name.toLowerCase().includes(user.firstName.toLowerCase()) || 
+             s.teacher?.name.toLowerCase().includes(user.lastName.toLowerCase());
+      return isAssignedTeacher && spreadT;
     }
-  }
+    
+    if (user.role === 'STUDENT') {
+      const isAssignedStudent = s.id === user.sessionId || s.students.some(stud => 
+        stud.name.toLowerCase().includes(`${user.firstName} ${user.lastName}`.toLowerCase()) || 
+        (stud.email && stud.email.toLowerCase() === user.email.toLowerCase())
+      );
+      return isAssignedStudent && spreadS;
+    }
+    return false;
+  });
 
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
@@ -228,6 +191,28 @@ export default function MySession({
 
   const session = userSessions.find(s => s.id === selectedSessionId) || userSessions[0];
   const isTeacher = user.role === 'TEACHER' || user.role === 'ADMIN';
+
+  // Empty state if no sessions available
+  if (!session) {
+    return (
+      <div className="pt-6 sm:pt-8 animate-fade-in animate-duration-300">
+        <div className="bg-white rounded-3xl border border-gray-150 p-6 sm:p-12 text-center shadow-lg w-full max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-primary/5 rounded-full flex items-center justify-center mb-6">
+            <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 text-brand-primary/40" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-brand-dark mb-3">
+            {lang === 'ar' ? 'لا توجد حلقات دراسية متاحة حالياً' : 'No Study Sessions Available Currently'}
+          </h2>
+          <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed font-bold">
+            {user.role === 'STUDENT'
+              ? (lang === 'ar' ? 'لم يتم تخصيصك في أي حلقة بعد، أو لم يتم الإعلان عن التوزيع النهائي من قبل شؤون الحلقات. يرجى الانتظار لحين اعتماد الجداول.' : 'You have not been assigned to any session yet, or the final distribution has not been announced by the administration. Please wait until schedules are confirmed.')
+              : (lang === 'ar' ? 'لم يتم تخصيص أي حلقات لتدريسها بعد، أو لم يتم الإعلان عن الجداول النهائية. يرجى انتظار توجيهات الإدارة.' : 'No teaching sessions have been assigned to you yet, or final schedules have not been announced. Please wait for administration directives.')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const announcements = session.announcements || [];
 
   // Local UI States
@@ -503,7 +488,7 @@ export default function MySession({
       return s;
     }));
 
-    alert(lang === 'ar' ? 'تم إرسال الجائزة بنجاح!' : 'Gift sent successfully close!');
+    toast.success(lang === 'ar' ? 'تم إرسال الجائزة بنجاح!' : 'Gift sent successfully close!');
     setGiftModalStudentId(null);
     setGiftMessage('');
     setGiftAmount(10);

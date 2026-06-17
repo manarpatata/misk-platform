@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../lib/toast';
 import { 
   User, 
   Session, 
@@ -206,7 +207,7 @@ export default function ControlPanel({
   const handleSaveSession = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sessTeacherEmail || !sessTimeSlot) {
-      alert(lang === 'ar' ? 'الرجاء اختيار المعلمة وتحديد الميعاد الشاغر المتاح!' : 'Please choose a teacher and select an available time slot!');
+      toast.error(lang === 'ar' ? 'الرجاء اختيار المعلمة وتحديد الميعاد الشاغر المتاح!' : 'Please choose a teacher and select an available time slot!');
       return;
     }
 
@@ -258,7 +259,7 @@ export default function ControlPanel({
         }
         return s;
       }));
-      alert(lang === 'ar' ? 'تم تعديل الحلقة بنجاح' : 'Session updated successfully!');
+      toast.success(lang === 'ar' ? 'تم تعديل الحلقة بنجاح' : 'Session updated successfully!');
     } else {
       // Creation Mode
       const newSess: Session = {
@@ -282,7 +283,7 @@ export default function ControlPanel({
         ...prev,
         totalSessions: prev.totalSessions + 1
       }));
-      alert(lang === 'ar' ? 'تم إنشاء الحلقة بنجاح وتفعيلها' : 'New session created successfully!');
+      toast.success(lang === 'ar' ? 'تم إنشاء الحلقة بنجاح وتفعيلها' : 'New session created successfully!');
     }
 
     // Reset Form
@@ -335,7 +336,7 @@ export default function ControlPanel({
         ...prev,
         totalSessions: Math.max(0, prev.totalSessions - 1)
       }));
-      alert(lang === 'ar' ? 'تم حذف الحلقة' : 'Session deleted.');
+      toast.error(lang === 'ar' ? 'تم حذف الحلقة' : 'Session deleted.');
     }
   };
 
@@ -376,7 +377,7 @@ export default function ControlPanel({
       totalStudents: prev.totalStudents + 1
     }));
 
-    alert(lang === 'ar' 
+    toast.success(lang === 'ar' 
       ? 'تم قبول طلب الانضمام وتوزيع الطالبة بنجاح!' 
       : 'Join request approved and student enrolled successfully!'
     );
@@ -441,7 +442,7 @@ export default function ControlPanel({
     setAllTeachers(prev => prev.map(t => {
       if (t.email === email) {
         const nextRole = t.role === 'ADMIN' ? 'TEACHER' : 'ADMIN';
-        alert(lang === 'ar' 
+        toast.success(lang === 'ar' 
           ? `تم تحديث الصلاحية بنجاح! الدور الحالي: ${nextRole === 'ADMIN' ? 'مشرفة إدارية (Admin)' : 'معلمة تلاوة (Teacher)'}`
           : `Role updated successfully! Active role: ${nextRole}`
         );
@@ -477,7 +478,7 @@ export default function ControlPanel({
     setEditingId(null);
     setEditForm(null);
 
-    alert(lang === 'ar' 
+    toast.success(lang === 'ar' 
       ? 'تم حفظ التعديلات والموافقة على الحساب بنجاح!' 
       : 'User details updated and account successfully approved!'
     );
@@ -526,7 +527,7 @@ export default function ControlPanel({
     const handleCreateSemester = (e: React.FormEvent) => {
       e.preventDefault();
       if (!semTitle.trim()) {
-        alert(tLabel('يرجى كتابة عنوان للفصل الدراسي الجديد!', 'Please provide a title for the new semester!'));
+        toast.error(tLabel('يرجى كتابة عنوان للفصل الدراسي الجديد!', 'Please provide a title for the new semester!'));
         return;
       }
 
@@ -560,7 +561,7 @@ export default function ControlPanel({
       setSemStopRegManual(false);
       setShowAddSemesterForm(false);
 
-      alert(tLabel('تم إنشاء الفصل الدراسي الجديد بنجاح وبدء جدول التقديم!', 'The new semester registration calendar has been initiated successfully!'));
+      toast.success(tLabel('تم إنشاء الفصل الدراسي الجديد بنجاح وبدء جدول التقديم!', 'The new semester registration calendar has been initiated successfully!'));
     };
 
     const handleToggleRegistration = (id: string) => {

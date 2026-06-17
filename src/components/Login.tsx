@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../lib/toast';
 
 interface LoginProps {
   handleLogin: (email: string, password?: string) => void;
@@ -23,7 +24,7 @@ export default function Login({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password && password.length < 6) {
-      alert(tField('يجب ألا تقل كلمة المرور عن 6 أحرف!', 'Password cannot be less than 6 characters!'));
+      toast.error(tField('يجب ألا تقل كلمة المرور عن 6 أحرف!', 'Password cannot be less than 6 characters!'));
       return;
     }
     if (email) {
@@ -42,6 +43,43 @@ export default function Login({
           <p className="text-gray-400 text-xs sm:text-sm font-bold">
             {t().signInAccount}
           </p>
+        </div>
+
+        {/* Shortcuts card listing roles */}
+        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-150 mb-6 text-center mt-6">
+          <p className="text-[0.65rem] font-black text-brand-accent uppercase tracking-wider mb-2.5">
+            {tField('حسابات تجريبية سريعة', 'Demo Shortcuts')}
+          </p>
+          <div className="flex gap-2 justify-center flex-wrap">
+            <button 
+              type="button" 
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
+              onClick={() => handleLogin('admin@test.com')}
+            >
+              {tField('مسؤولة النادي', 'Admin')}
+            </button>
+            <button 
+              type="button" 
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
+              onClick={() => handleLogin('teacher@test.com')}
+            >
+              {tField('المعلمة مريم', 'Teacher')}
+            </button>
+            <button 
+              type="button" 
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
+              onClick={() => handleLogin('student_ug@test.com')}
+            >
+              {tField('أمل (بكالوريوس)', 'Amal (UG Student)')}
+            </button>
+            <button 
+              type="button" 
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
+              onClick={() => handleLogin('student_pg@test.com')}
+            >
+              {tField('فاطمة (دراسات/موظفة)', 'Fatima (PG/Employee)')}
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-start mt-6">

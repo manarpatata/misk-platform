@@ -30,6 +30,8 @@ import ControlPanel from './components/ControlPanel';
 import Profile from './components/Profile';
 import { About, Contact, Conditions, Success } from './components/StaticPages';
 import Footer from './components/Footer';
+import ToastContainer from './components/ToastContainer';
+import { toast } from './lib/toast';
 import { ArrowUp } from 'lucide-react';
 
 export default function App() {
@@ -254,7 +256,7 @@ export default function App() {
     if (customRegisteredStr) {
       const parsed = JSON.parse(customRegisteredStr);
       if (passwordInput && parsed.password && parsed.password !== passwordInput) {
-        alert(lang === 'ar' ? 'كلمة المرور غير صحيحة!' : 'Incorrect password!');
+        toast.error(lang === 'ar' ? 'كلمة المرور غير صحيحة!' : 'Incorrect password!');
         return;
       }
       setUser(parsed);
@@ -268,7 +270,7 @@ export default function App() {
       const parsedSaved = JSON.parse(savedUserStr);
       if (parsedSaved.email && parsedSaved.email.toLowerCase() === lower) {
         if (passwordInput && parsedSaved.password && parsedSaved.password !== passwordInput) {
-          alert(lang === 'ar' ? 'كلمة المرور غير صحيحة!' : 'Incorrect password!');
+          toast.error(lang === 'ar' ? 'كلمة المرور غير صحيحة!' : 'Incorrect password!');
           return;
         }
         setUser(parsedSaved);
@@ -375,13 +377,13 @@ export default function App() {
     }
 
     if (!passwordInput) {
-      alert(lang === 'ar' ? 'يرجى إدخال كلمة المرور' : 'Please enter a password');
+      toast.error(lang === 'ar' ? 'يرجى إدخال كلمة المرور' : 'Please enter a password');
       return;
     }
 
     // Enforce ID sign-in instead of email
     if (emailAddress.includes('@')) {
-       alert(lang === 'ar' ? 'يرجى تسجيل الدخول باستخدام الرقم الجامعي أو الوظيفي، وليس البريد الإلكتروني.' : 'Please sign in using your ID number, not your email.');
+       toast.error(lang === 'ar' ? 'يرجى تسجيل الدخول باستخدام الرقم الجامعي أو الوظيفي، وليس البريد الإلكتروني.' : 'Please sign in using your ID number, not your email.');
        return;
     }
 
@@ -415,7 +417,7 @@ export default function App() {
     
     // If still no email found
     if (!authEmail || authEmail === emailAddress) {
-       alert(lang === 'ar' ? 'لم يتم العثور على حساب مرتبط بهذا الرقم.' : 'Could not find an account associated with this ID.');
+       toast.error(lang === 'ar' ? 'لم يتم العثور على حساب مرتبط بهذا الرقم.' : 'Could not find an account associated with this ID.');
        return;
     }
 
@@ -427,7 +429,7 @@ export default function App() {
       });
 
       if (error) {
-        alert(error.message);
+        toast.error(error.message);
         return;
       }
 
@@ -468,7 +470,7 @@ export default function App() {
       }
     } catch (err: any) {
       console.error(err);
-      alert(lang === 'ar' ? 'حدث خطأ أثناء تسجيل الدخول' : 'An error occurred during login');
+      toast.error(lang === 'ar' ? 'حدث خطأ أثناء تسجيل الدخول' : 'An error occurred during login');
     }
   };
 
@@ -673,6 +675,8 @@ export default function App() {
           <ArrowUp className="w-5.5 h-5.5 stroke-[3]" />
         </button>
       )}
+
+      <ToastContainer />
 
       {/* Exquisite Central Islamic Medallion decorative bg illustration floating element */}
       <div className="fixed inset-0 pointer-events-none z-[-5] flex items-center justify-center opacity-[0.03] overflow-hidden">

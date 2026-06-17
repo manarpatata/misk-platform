@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../lib/toast';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 import { Camera, GraduationCap, CheckCircle, Phone, Mail, Lock, BookOpen, ShieldCheck, UserCheck } from 'lucide-react';
@@ -87,29 +88,29 @@ export default function Profile({
 
     const cleanPhone = phone.replace(/\s+/g, '');
     if (cleanPhone.length !== 8) {
-      alert(tField('يجب أن يتكون رقم الهاتف من 8 أرقام تبدأ بـ 9 أو 7!', 'Phone number must be exactly 8 digits starting with 9 or 7!'));
+      toast.error(tField('يجب أن يتكون رقم الهاتف من 8 أرقام تبدأ بـ 9 أو 7!', 'Phone number must be exactly 8 digits starting with 9 or 7!'));
       return;
     }
 
     let finalPassword = password;
     if (changePassword) {
       if (!newPassword) {
-        alert(tField('يرجى إدخال كلمة المرور الجديدة!', 'Please enter the new password!'));
+        toast.error(tField('يرجى إدخال كلمة المرور الجديدة!', 'Please enter the new password!'));
         return;
       }
       if (newPassword.length < 6) {
-        alert(tField('يجب ألا تقل كلمة المرور عن 6 أحرف!', 'Password cannot be less than 6 characters!'));
+        toast.error(tField('يجب ألا تقل كلمة المرور عن 6 أحرف!', 'Password cannot be less than 6 characters!'));
         return;
       }
       if (newPassword !== confirmPassword) {
-        alert(tField('كلمتا المرور غير متطابقتين!', 'Passwords do not match!'));
+        toast.error(tField('كلمتا المرور غير متطابقتين!', 'Passwords do not match!'));
         return;
       }
       finalPassword = newPassword;
       // Update Auth Password
       const { error: passError } = await supabase.auth.updateUser({ password: newPassword });
       if (passError) {
-        alert(passError.message);
+        toast.error(passError.message);
         return;
       }
     }
@@ -117,7 +118,7 @@ export default function Profile({
     if (email !== user.email) {
       const { error: emailError } = await supabase.auth.updateUser({ email: email });
       if (emailError) {
-        alert(emailError.message);
+        toast.error(emailError.message);
         return;
       }
     }
@@ -138,7 +139,7 @@ export default function Profile({
       }).eq('id', userData.user.id);
       
       if (error) {
-        alert(error.message);
+        toast.error(error.message);
         return;
       }
     }
@@ -166,7 +167,7 @@ export default function Profile({
     setNewPassword('');
     setConfirmPassword('');
     setEditing(false);
-    alert(tField('تم تحديث البيانات والملف الشخصي بنجاح!', 'Profile updated successfully!'));
+    toast.success(tField('تم تحديث البيانات والملف الشخصي بنجاح!', 'Profile updated successfully!'));
   };
 
 
