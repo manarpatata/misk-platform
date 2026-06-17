@@ -395,25 +395,18 @@ export default function App() {
        return;
     }
 
-    let authEmail = emailAddress;
+    let authEmail: string | null = null;
 
-    // Look up the real email from our `profiles` table using the ID
     try {
-      // 1. Try to find in database profile
-      const { data: profiles, error: dbErr } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', emailAddress)
-        .limit(1);
+      // 1. Fetch the correct email using the RPC function
+      const { data: emailData, error: dbErr } = await supabase.rpc('get_email_by_username', { p_username: emailAddress });
 
       if (dbErr) {
-         console.error('DB Error looking up profile:', dbErr);
+         console.error('DB Error looking up email via RPC:', dbErr);
       }
 
-      const profile = profiles && profiles.length > 0 ? profiles[0] : null;
-
-      if (profile && profile.email) {
-        authEmail = profile.email;
+      if (emailData) {
+        authEmail = emailData;
       } else {
         // 2. Fallback to local storage mapping
         const lower = emailAddress.toLowerCase();
@@ -426,45 +419,25 @@ export default function App() {
         }
       }
     } catch (err) {
-       console.error('Error looking up profile:', err);
+       console.error('Error executing RPC function:', err);
     }
-    
-    // If still no email found, try constructing the default emails based on the ID
-    let emailsToTry = [authEmail];
-    if (!authEmail || authEmail === emailAddress) {
-      emailsToTry = [
-        `${emailAddress}@student.itqan.edu`,
-        `${emailAddress}@teacher.itqan.edu`,
-        emailAddress // just in case they typed their actual email
-      ];
+
+    if (!authEmail) {
+       toast.error(lang === 'ar' ? 'لم يتم العثور على حساب مرتبط بهذا الرقم.' : 'User ID not found');
+       return;
     }
 
     // Try Supabase Auth First
     try {
-      let loginData = null;
-      let loginError = null;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: passwordInput,
+      });
 
-      for (const testEmail of emailsToTry) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: testEmail,
-          password: passwordInput,
-        });
-        
-        if (!error && data.user) {
-          loginData = data;
-          loginError = null;
-          break;
-        } else {
-          loginError = error;
-        }
-      }
-
-      if (loginError || !loginData) {
-        toast.error(loginError?.message || (lang === 'ar' ? 'بيانات الدخول غير صحيحة.' : 'Invalid login credentials.'));
+      if (error) {
+        toast.error(error.message || (lang === 'ar' ? 'بيانات الدخول غير صحيحة.' : 'Invalid login credentials.'));
         return;
       }
-
-      const { data } = loginData;
       
       if (data.user) {
         const { data: profile } = await supabase
