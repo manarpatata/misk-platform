@@ -73,13 +73,18 @@ export default function App() {
         // Fetch full profile from the database
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('*, student_profiles(level)')
           .eq('id', session.user.id)
           .single();
 
         setUser((prevUser) => {
           const metadata = session.user.user_metadata || {};
-          const dbLevel = profile?.level || 'غير مصنف';
+          let dbLevel = 'غير مصنف';
+          if (profile?.student_profiles) {
+            dbLevel = Array.isArray(profile.student_profiles) 
+              ? profile.student_profiles[0]?.level || 'غير مصنف'
+              : (profile.student_profiles as any).level || 'غير مصنف';
+          }
           let rawRole = profile?.role || 'STUDENT';
           if (String(profile?.role).toUpperCase() === 'ADMIN') {
             rawRole = 'ADMIN';
@@ -212,7 +217,7 @@ export default function App() {
       if (user && user.id && !user.id.includes('demo')) {
         const { data, error } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, student_profiles(level)')
           .eq('id', user.id)
           .single();
 
@@ -223,9 +228,25 @@ export default function App() {
             rawRole = 'ADMIN';
           }
           const freshRole = String(rawRole).toUpperCase() as any;
-          if (user.role !== freshRole) {
-             setUser(prev => prev ? { ...prev, role: freshRole } : null);
+          
+          let freshLevel = undefined;
+          if (data.student_profiles) {
+            freshLevel = Array.isArray(data.student_profiles) 
+              ? data.student_profiles[0]?.level 
+              : (data.student_profiles as any).level;
           }
+
+          setUser(prev => {
+            if (!prev) return null;
+            const updates: any = {};
+            if (prev.role !== freshRole) updates.role = freshRole;
+            if (freshLevel && prev.level !== freshLevel) updates.level = freshLevel || 'غير مصنف';
+            
+            if (Object.keys(updates).length > 0) {
+              return { ...prev, ...updates };
+            }
+            return prev;
+          });
         }
       }
     }
@@ -468,12 +489,17 @@ export default function App() {
       if (data.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('*, student_profiles(level)')
           .eq('id', data.user.id)
           .single();
 
         const metadata = data.user.user_metadata || {};
-        const dbLevel = profile?.level || 'غير مصنف';
+        let dbLevel = 'غير مصنف';
+        if (profile?.student_profiles) {
+          dbLevel = Array.isArray(profile.student_profiles) 
+            ? profile.student_profiles[0]?.level || 'غير مصنف'
+            : (profile.student_profiles as any).level || 'غير مصنف';
+        }
         let rawRole = profile?.role || 'STUDENT';
         if (String(profile?.role).toUpperCase() === 'ADMIN') {
           rawRole = 'ADMIN';
