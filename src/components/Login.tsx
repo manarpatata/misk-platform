@@ -54,28 +54,28 @@ export default function Login({
             <button 
               type="button" 
               className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('admin@test.com')}
+              onClick={() => handleLogin('demoadmin@itqan.com')}
             >
               {tField('مسؤولة النادي', 'Admin')}
             </button>
             <button 
               type="button" 
               className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('teacher@test.com')}
+              onClick={() => handleLogin('demoteacher@itqan.com')}
             >
               {tField('المعلمة مريم', 'Teacher')}
             </button>
             <button 
               type="button" 
               className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('student_ug@test.com')}
+              onClick={() => handleLogin('demostudent_ug@itqan.com')}
             >
               {tField('أمل (بكالوريوس)', 'Amal (UG Student)')}
             </button>
             <button 
               type="button" 
               className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('student_pg@test.com')}
+              onClick={() => handleLogin('demostudent_pg@itqan.com')}
             >
               {tField('فاطمة (دراسات/موظفة)', 'Fatima (PG/Employee)')}
             </button>
