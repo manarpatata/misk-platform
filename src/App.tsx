@@ -79,9 +79,9 @@ export default function App() {
 
         setUser((prevUser) => {
           const metadata = session.user.user_metadata || {};
-          const dbLevel = profile?.level || metadata.level || prevUser?.level || 'غير مصنف';
-          let rawRole = profile?.role || metadata.role || prevUser?.role || 'STUDENT';
-          if (String(metadata.role).toUpperCase() === 'ADMIN' || String(profile?.role).toUpperCase() === 'ADMIN') {
+          const dbLevel = profile?.level || 'غير مصنف';
+          let rawRole = profile?.role || 'STUDENT';
+          if (String(profile?.role).toUpperCase() === 'ADMIN') {
             rawRole = 'ADMIN';
           }
           const updatedRole = String(rawRole).toUpperCase() as any;
@@ -473,9 +473,9 @@ export default function App() {
           .single();
 
         const metadata = data.user.user_metadata || {};
-        const dbLevel = profile?.level || metadata.level || 'غير مصنف';
-        let rawRole = profile?.role || metadata.role || 'STUDENT';
-        if (String(metadata.role).toUpperCase() === 'ADMIN' || String(profile?.role).toUpperCase() === 'ADMIN') {
+        const dbLevel = profile?.level || 'غير مصنف';
+        let rawRole = profile?.role || 'STUDENT';
+        if (String(profile?.role).toUpperCase() === 'ADMIN') {
           rawRole = 'ADMIN';
         }
         const updatedRole = String(rawRole).toUpperCase() as any;
