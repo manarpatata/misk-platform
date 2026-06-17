@@ -199,6 +199,17 @@ export default function App() {
     localStorage.setItem('itqan_semesters', JSON.stringify(semesters));
   }, [semesters]);
 
+  useEffect(() => {
+    const handleNavRequest = (e: any) => {
+      if (e.detail && typeof e.detail === 'string') {
+        setCurrentView(e.detail);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('nav-request', handleNavRequest);
+    return () => window.removeEventListener('nav-request', handleNavRequest);
+  }, []);
+
   // Dynamic user data lists for admin and register coordination
   const [allStudents, setAllStudents] = useState<any[]>(() => {
     const cached = localStorage.getItem('itqan_all_students_v12');
@@ -329,7 +340,11 @@ export default function App() {
           return;
         }
         setUser(parsedSaved);
-        setCurrentView('home');
+        if (parsedSaved.role && String(parsedSaved.role).toUpperCase() === 'ADMIN') {
+          setCurrentView('controlpanel');
+        } else {
+          setCurrentView('home');
+        }
         return;
       }
     }
@@ -529,7 +544,11 @@ export default function App() {
           absencesExcused: 0,
           absencesUnexcused: 0
         } as any);
-        setCurrentView('home');
+        if (updatedRole === 'ADMIN') {
+          setCurrentView('controlpanel');
+        } else {
+          setCurrentView('home');
+        }
       }
     } catch (err: any) {
       console.error(err);
