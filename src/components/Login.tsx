@@ -44,47 +44,10 @@ export default function Login({
           </p>
         </div>
 
-        {/* Shortcuts card listing roles */}
-        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-150 mb-6 text-center">
-          <p className="text-[0.65rem] font-black text-brand-accent uppercase tracking-wider mb-2.5">
-            {tField('حسابات تجريبية سريعة', 'Demo Shortcuts')}
-          </p>
-          <div className="flex gap-2 justify-center flex-wrap">
-            <button 
-              type="button" 
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('admin@test.com')}
-            >
-              {tField('مسؤولة النادي', 'Admin')}
-            </button>
-            <button 
-              type="button" 
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('teacher@test.com')}
-            >
-              {tField('المعلمة مريم', 'Teacher')}
-            </button>
-            <button 
-              type="button" 
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('student_ug@test.com')}
-            >
-              {tField('أمل (بكالوريوس)', 'Amal (UG Student)')}
-            </button>
-            <button 
-              type="button" 
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-black text-brand-dark rounded-xl shadow-xs hover:bg-brand-neutral/30 transition-colors cursor-pointer" 
-              onClick={() => handleLogin('student_pg@test.com')}
-            >
-              {tField('فاطمة (دراسات/موظفة)', 'Fatima (PG/Employee)')}
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 text-start">
+        <form onSubmit={handleSubmit} className="space-y-4 text-start mt-6">
           <div>
             <label className="text-xs font-black text-gray-400 block mb-1">
-              {tField('الرقم الجامعي/الوظيفي أو البريد الإلكتروني', 'ID or Email Address')}
+              {tField('الرقم الجامعي / الوظيفي', 'University / Employee ID')}
             </label>
             <input 
               type="text" 
@@ -92,7 +55,7 @@ export default function Login({
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-slate-50 border border-gray-150 focus:border-brand-primary focus:outline-none rounded-xl px-4 py-2.5 text-sm font-bold text-ltr" 
               required 
-              placeholder={tField('مثال: الرقم الجامعي أو البريد الإلكتروني', 'e.g. your ID or registered email')}
+              placeholder={tField('ادخلي رقمك الجامعي أو الوظيفي هنا', 'Enter your ID here')}
             />
           </div>
 

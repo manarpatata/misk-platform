@@ -170,6 +170,8 @@ export default function Register({
             phone_number: studentPhone,
             level: 'غير مصنف',
             cohort: studentCohort || '2023',
+            id_card_url: cardPicName || null,
+            audio_url: voiceFileName || null,
           }).catch(console.error);
         }
 
@@ -270,6 +272,8 @@ export default function Register({
             phone_number: teacherPhone,
             level: teacherLevel,
             cohort: teacherCohort,
+            id_card_url: null,
+            audio_url: null,
           }).catch(console.error);
 
           await supabase.from('teacher_profiles').insert({

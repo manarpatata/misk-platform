@@ -379,40 +379,44 @@ export default function App() {
       return;
     }
 
+    // Enforce ID sign-in instead of email
+    if (emailAddress.includes('@')) {
+       alert(lang === 'ar' ? 'يرجى تسجيل الدخول باستخدام الرقم الجامعي أو الوظيفي، وليس البريد الإلكتروني.' : 'Please sign in using your ID number, not your email.');
+       return;
+    }
+
     let authEmail = emailAddress;
 
-    // If it's an ID (no @ symbol), we need to look up the real email from our `profiles` table 
-    // or fallback to local storage map
-    if (!emailAddress.includes('@')) {
-      try {
-        // 1. Try to find in database profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', emailAddress)
-          .single();
+    // Look up the real email from our `profiles` table using the ID
+    try {
+      // 1. Try to find in database profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', emailAddress)
+        .single();
 
-        if (profile && profile.email) {
-          authEmail = profile.email;
-        } else {
-          // 2. Fallback to local storage mapping
-          const customUserRaw = localStorage.getItem('registered_user_' + lower);
-          if (customUserRaw) {
-            const customUser = JSON.parse(customUserRaw);
-            if (customUser.email) {
-              authEmail = customUser.email;
-            }
+      if (profile && profile.email) {
+        authEmail = profile.email;
+      } else {
+        // 2. Fallback to local storage mapping
+        const lower = emailAddress.toLowerCase();
+        const customUserRaw = localStorage.getItem('registered_user_' + lower);
+        if (customUserRaw) {
+          const customUser = JSON.parse(customUserRaw);
+          if (customUser.email) {
+            authEmail = customUser.email;
           }
         }
-      } catch (err) {
-         console.error('Error looking up profile:', err);
       }
-      
-      // If still no email found
-      if (!authEmail.includes('@')) {
-         alert(lang === 'ar' ? 'لم يتم العثور على البريد الإلكتروني المرتبط بهذا الرقم. تأكدي من إنشاء الحساب أو جربي الدخول بالبريد الإلكتروني.' : 'Could not find the email associated with this ID. Please register or try logging in with your Email Address.');
-         return;
-      }
+    } catch (err) {
+       console.error('Error looking up profile:', err);
+    }
+    
+    // If still no email found
+    if (!authEmail || authEmail === emailAddress) {
+       alert(lang === 'ar' ? 'لم يتم العثور على حساب مرتبط بهذا الرقم.' : 'Could not find an account associated with this ID.');
+       return;
     }
 
     // Try Supabase Auth First
