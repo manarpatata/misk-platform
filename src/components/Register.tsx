@@ -138,10 +138,15 @@ export default function Register({
             data: {
               first_name: studentFirstName,
               last_name: studentLastName,
+              father_name: studentFatherName,
+              grandfather_name: studentGrandfatherName,
               phone: studentPhone,
               role: 'STUDENT',
               student_id: finalStudentId,
+              username: finalStudentId,
               college: selectedCollege || 'OTHER',
+              cohort: studentCohort || '2023',
+              level: 'غير مصنف'
             }
           }
         });
@@ -227,10 +232,15 @@ export default function Register({
             data: {
               first_name: teacherFirstName,
               last_name: teacherLastName,
+              father_name: teacherFatherName,
+              grandfather_name: teacherGrandfatherName,
               phone: teacherPhone,
               role: 'TEACHER',
               employee_id: finalTeacherId,
+              username: finalTeacherId,
               college: teacherCollege === 'أخرى' ? (teacherManualCollege || 'Other') : (teacherCollege || 'Education'),
+              cohort: teacherCohort,
+              level: teacherLevel
             }
           }
         });
