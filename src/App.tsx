@@ -255,7 +255,8 @@ export default function App() {
   const t = () => translations[lang];
 
   // --- Login handler with rich initial data ---
-  const handleLogin = async (emailAddress: string, passwordInput?: string) => {
+  const handleLogin = async (emailAddressInput: string, passwordInput?: string) => {
+    const emailAddress = emailAddressInput.trim();
     const lower = emailAddress.toLowerCase();
     
     // Check if there is a custom registered user in local storage
@@ -399,11 +400,17 @@ export default function App() {
     // Look up the real email from our `profiles` table using the ID
     try {
       // 1. Try to find in database profile
-      const { data: profile } = await supabase
+      const { data: profiles, error: dbErr } = await supabase
         .from('profiles')
         .select('email')
         .eq('username', emailAddress)
-        .single();
+        .limit(1);
+
+      if (dbErr) {
+         console.error('DB Error looking up profile:', dbErr);
+      }
+
+      const profile = profiles && profiles.length > 0 ? profiles[0] : null;
 
       if (profile && profile.email) {
         authEmail = profile.email;
@@ -422,24 +429,43 @@ export default function App() {
        console.error('Error looking up profile:', err);
     }
     
-    // If still no email found
+    // If still no email found, try constructing the default emails based on the ID
+    let emailsToTry = [authEmail];
     if (!authEmail || authEmail === emailAddress) {
-       toast.error(lang === 'ar' ? 'لم يتم العثور على حساب مرتبط بهذا الرقم.' : 'Could not find an account associated with this ID.');
-       return;
+      emailsToTry = [
+        `${emailAddress}@student.itqan.edu`,
+        `${emailAddress}@teacher.itqan.edu`,
+        emailAddress // just in case they typed their actual email
+      ];
     }
 
     // Try Supabase Auth First
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: authEmail,
-        password: passwordInput,
-      });
+      let loginData = null;
+      let loginError = null;
 
-      if (error) {
-        toast.error(error.message);
+      for (const testEmail of emailsToTry) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: passwordInput,
+        });
+        
+        if (!error && data.user) {
+          loginData = data;
+          loginError = null;
+          break;
+        } else {
+          loginError = error;
+        }
+      }
+
+      if (loginError || !loginData) {
+        toast.error(loginError?.message || (lang === 'ar' ? 'بيانات الدخول غير صحيحة.' : 'Invalid login credentials.'));
         return;
       }
 
+      const { data } = loginData;
+      
       if (data.user) {
         const { data: profile } = await supabase
           .from('profiles')
