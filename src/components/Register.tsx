@@ -151,6 +151,17 @@ export default function Register({
           return;
         }
 
+        if (data?.user) {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            username: finalStudentId,
+            email: studentEmail,
+            first_name: studentFirstName,
+            last_name: studentLastName,
+            role: 'STUDENT',
+          }).catch(console.error);
+        }
+
         const newUser = {
           firstName: studentFirstName,
           fatherName: studentFatherName,
@@ -227,6 +238,17 @@ export default function Register({
         if (error) {
           alert(error.message);
           return;
+        }
+
+        if (data?.user) {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            username: finalTeacherId,
+            email: teacherEmail,
+            first_name: teacherFirstName,
+            last_name: teacherLastName,
+            role: 'TEACHER',
+          }).catch(console.error);
         }
 
         const newUser = {
