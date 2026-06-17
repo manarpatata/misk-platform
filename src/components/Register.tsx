@@ -53,6 +53,8 @@ export default function Register({
   const [studentConfirmPassword, setStudentConfirmPassword] = useState("");
   const [studentId, setStudentId] = useState("");
   const [studentCohort, setStudentCohort] = useState("");
+  const [prevLevel, setPrevLevel] = useState("");
+  const [didQualify, setDidQualify] = useState("yes");
 
   const [teacherFirstName, setTeacherFirstName] = useState("");
   const [teacherFatherName, setTeacherFatherName] = useState("");
@@ -144,6 +146,19 @@ export default function Register({
       const finalStudentId =
         studentId || Math.floor(100000 + Math.random() * 900000).toString();
 
+      let actualLevel = "غير مصنف";
+      if (regFirstTime === "no") {
+        if (didQualify === "yes") {
+          if (prevLevel === "BEGINNER") actualLevel = "تمهيدية (Intermediate)";
+          else if (prevLevel === "INTERMEDIATE") actualLevel = "متقدمة (Advanced)";
+          else if (prevLevel === "ADVANCED") actualLevel = "متقدمة (Advanced)";
+        } else {
+          if (prevLevel === "BEGINNER") actualLevel = "مبتدئة (Beginner)";
+          else if (prevLevel === "INTERMEDIATE") actualLevel = "تمهيدية (Intermediate)";
+          else if (prevLevel === "ADVANCED") actualLevel = "متقدمة (Advanced)";
+        }
+      }
+
       try {
         const { data, error } = await supabase.auth.signUp({
           email: studentEmail,
@@ -160,7 +175,7 @@ export default function Register({
               username: finalStudentId,
               college: selectedCollege || "OTHER",
               cohort: studentCohort || "2023",
-              level: "غير مصنف",
+              level: actualLevel,
               id_card_url: cardPicName || null,
               audio_url: voiceFileName || null,
             },
@@ -186,7 +201,7 @@ export default function Register({
               father_name: studentFatherName,
               grandfather_name: studentGrandfatherName,
               phone_number: studentPhone,
-              level: "غير مصنف",
+              level: actualLevel,
               cohort: studentCohort || "2023",
               id_card_url: cardPicName || null,
               audio_url: voiceFileName || null,
@@ -206,7 +221,7 @@ export default function Register({
           college: selectedCollege || "OTHER",
           cohort: studentCohort || "2023",
           studentId: finalStudentId,
-          level: tField("غير مصنف", "Not Categorized"),
+          level: actualLevel,
           username: finalStudentId,
           password: studentPassword, // Optional: might want to remove this if strictly relying on supabase
           avatar: "https://picsum.photos/seed/student_new/200/200",
@@ -858,6 +873,8 @@ export default function Register({
                     <select
                       className="w-full bg-white border border-gray-150 focus:border-brand-primary focus:outline-none rounded-xl px-3 py-2 text-xs font-bold"
                       required
+                      value={prevLevel}
+                      onChange={(e) => setPrevLevel(e.target.value)}
                     >
                       <option value="">
                         {tField("اختر المستوى السابق", "Select Prior Level")}
@@ -881,11 +898,13 @@ export default function Register({
                     <select
                       className="w-full bg-white border border-gray-150 focus:border-brand-primary focus:outline-none rounded-xl px-3 py-2 text-xs font-bold"
                       required
+                      value={didQualify}
+                      onChange={(e) => setDidQualify(e.target.value)}
                     >
-                      <option value="نعم">
+                      <option value="yes">
                         {tField("نعم، تأهلت بنجاح", "Yes")}
                       </option>
-                      <option value="لا">
+                      <option value="no">
                         {tField("لا، لم أتأهل بعد", "No")}
                       </option>
                     </select>

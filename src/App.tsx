@@ -84,6 +84,7 @@ export default function App() {
              const dbRole = profile?.role || metadata.role || 'STUDENT';
              
              return {
+                id: session.user.id,
                 firstName: profile?.first_name || metadata.first_name || session.user.email?.split('@')[0] || 'User',
                 lastName: profile?.last_name || metadata.last_name || '',
                 fatherName: profile?.father_name || metadata.father_name || '',
@@ -445,6 +446,7 @@ export default function App() {
         const dbRole = profile?.role || metadata.role || 'STUDENT';
 
         setUser({
+          id: data.user.id,
           firstName: profile?.first_name || metadata.first_name || data.user.email?.split('@')[0] || 'User',
           lastName: profile?.last_name || metadata.last_name || '',
           fatherName: profile?.father_name || metadata.father_name || '',
@@ -514,6 +516,21 @@ export default function App() {
 
       // Store user registration into the specific semester registry database
       if (semesterId) {
+        if (user.id) {
+          // Attempt to Upsert into database
+          supabase.from('semester_registrations').upsert({
+            semester_id: semesterId,
+            user_id: user.id,
+            timings: details.timings || {},
+            format: details.teacherFormat || details.studentType || 'in-person',
+            notes: details.notes || '',
+            approved: false
+          }, { onConflict: 'semester_id, user_id' })
+          .then(({ error }) => {
+             if (error) console.error("Error saving semester registration to database:", error);
+          });
+        }
+
         setSemesters(prev => prev.map(sem => {
           if (sem.id === semesterId) {
             const regs = sem.registrations || { students: [], teachers: [] };
