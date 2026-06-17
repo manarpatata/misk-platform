@@ -66,30 +66,38 @@ export default function App() {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        // Only override if we don't already have the local user state populated 
-        // to avoid overwriting demo accounts or rich local state.
+        // Fetch full profile from the database
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
         setUser((prevUser) => {
           if (!prevUser || prevUser.email !== session.user.email) {
              const metadata = session.user.user_metadata || {};
-              return {
-                firstName: metadata.first_name || session.user.email?.split('@')[0] || 'User',
-                lastName: metadata.last_name || '',
-                fatherName: metadata.father_name || '',
-                grandfatherName: metadata.grandfather_name || '',
-                role: metadata.role || 'STUDENT',
+             const dbLevel = profile?.level || metadata.level || 'غير مصنف';
+             const dbRole = profile?.role || metadata.role || 'STUDENT';
+             
+             return {
+                firstName: profile?.first_name || metadata.first_name || session.user.email?.split('@')[0] || 'User',
+                lastName: profile?.last_name || metadata.last_name || '',
+                fatherName: profile?.father_name || metadata.father_name || '',
+                grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
+                role: dbRole,
                 email: session.user.email!,
                 isEnrolled: false,
                 avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
                 password: '',
-                phone: metadata.phone || '',
-                studentId: metadata.student_id,
-                employeeId: metadata.employee_id,
-                username: metadata.username || metadata.student_id || metadata.employee_id || session.user.email?.split('@')[0],
-                college: metadata.college || 'OTHER',
-                cohort: metadata.cohort || '2023',
-                level: metadata.level || 'غير مصنف',
+                phone: profile?.phone_number || metadata.phone || '',
+                studentId: dbRole === 'STUDENT' ? (profile?.username || metadata.student_id) : undefined,
+                employeeId: dbRole === 'TEACHER' ? (profile?.username || metadata.employee_id) : undefined,
+                username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || session.user.email?.split('@')[0],
+                college: profile?.college || metadata.college || 'OTHER',
+                cohort: profile?.cohort || metadata.cohort || '2023',
+                level: dbLevel,
                 money: 0,
                 gifts: [],
                 absencesExcused: 0,
@@ -420,24 +428,33 @@ export default function App() {
       }
 
       if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
         const metadata = data.user.user_metadata || {};
+        const dbLevel = profile?.level || metadata.level || 'غير مصنف';
+        const dbRole = profile?.role || metadata.role || 'STUDENT';
+
         setUser({
-          firstName: metadata.first_name || data.user.email?.split('@')[0] || 'User',
-          lastName: metadata.last_name || '',
-          fatherName: metadata.father_name || '',
-          grandfatherName: metadata.grandfather_name || '',
-          role: metadata.role || 'STUDENT',
+          firstName: profile?.first_name || metadata.first_name || data.user.email?.split('@')[0] || 'User',
+          lastName: profile?.last_name || metadata.last_name || '',
+          fatherName: profile?.father_name || metadata.father_name || '',
+          grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
+          role: dbRole,
           email: data.user.email!,
           isEnrolled: false,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.email}`,
           password: passwordInput,
-          phone: metadata.phone || '',
-          studentId: metadata.student_id,
-          employeeId: metadata.employee_id,
-          username: metadata.username || metadata.student_id || metadata.employee_id || data.user.email?.split('@')[0],
-          college: metadata.college || 'OTHER',
-          cohort: metadata.cohort || '2023',
-          level: metadata.level || 'غير مصنف',
+          phone: profile?.phone_number || metadata.phone || '',
+          studentId: dbRole === 'STUDENT' ? (profile?.username || metadata.student_id) : undefined,
+          employeeId: dbRole === 'TEACHER' ? (profile?.username || metadata.employee_id) : undefined,
+          username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || data.user.email?.split('@')[0],
+          college: profile?.college || metadata.college || 'OTHER',
+          cohort: profile?.cohort || metadata.cohort || '2023',
+          level: dbLevel,
           money: 0,
           gifts: [],
           absencesExcused: 0,

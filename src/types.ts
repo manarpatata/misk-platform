@@ -19,6 +19,8 @@ export interface ExamResults {
 export interface User {
   firstName: string;
   lastName: string;
+  fatherName?: string;
+  grandfatherName?: string;
   role: Role;
   email: string;
   isEnrolled: boolean;

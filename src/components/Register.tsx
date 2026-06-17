@@ -164,6 +164,12 @@ export default function Register({
             first_name: studentFirstName,
             last_name: studentLastName,
             role: 'STUDENT',
+            college: selectedCollege || 'OTHER',
+            father_name: studentFatherName,
+            grandfather_name: studentGrandfatherName,
+            phone_number: studentPhone,
+            level: 'غير مصنف',
+            cohort: studentCohort || '2023',
           }).catch(console.error);
         }
 
@@ -258,6 +264,17 @@ export default function Register({
             first_name: teacherFirstName,
             last_name: teacherLastName,
             role: 'TEACHER',
+            college: teacherCollege === 'أخرى' ? (teacherManualCollege || 'Other') : (teacherCollege || 'Education'),
+            father_name: teacherFatherName,
+            grandfather_name: teacherGrandfatherName,
+            phone_number: teacherPhone,
+            level: teacherLevel,
+            cohort: teacherCohort,
+          }).catch(console.error);
+
+          await supabase.from('teacher_profiles').insert({
+            user_id: data.user.id,
+            first_time: regFirstTime === 'yes'
           }).catch(console.error);
         }
 
