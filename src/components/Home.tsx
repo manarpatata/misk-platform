@@ -116,6 +116,7 @@ export default function Home({
   const [timings, setTimings] = useState<Record<string, 'selected' | 'online' | 'person' | undefined>>({});
   const [notes, setNotes] = useState<string>('');
   const [showRegistrationForm, setShowRegistrationForm] = useState<boolean>(false);
+  const [showConfirmResetModal, setShowConfirmResetModal] = useState<boolean>(false);
 
   if (!user) {
     return (
@@ -357,11 +358,11 @@ export default function Home({
   };
 
   const handleResetRegistration = () => {
-    const confirmMsg = tField(
-      'هل أنتِ متأكدة من رغبتكِ في تعديل خيارات التوقيت وإعادة التقديم؟',
-      'Are you sure you want to review and modify your current timing schedule?'
-    );
-    if (window.confirm(confirmMsg) && setUser) {
+    setShowConfirmResetModal(true);
+  };
+
+  const confirmResetAction = () => {
+    if (setUser) {
       setShowRegistrationForm(true);
       setUser(prev => {
         if (!prev) return null;
@@ -374,6 +375,11 @@ export default function Home({
         return updated;
       });
     }
+    setShowConfirmResetModal(false);
+  };
+
+  const cancelResetAction = () => {
+    setShowConfirmResetModal(false);
   };
 
 
@@ -1037,6 +1043,36 @@ export default function Home({
         </div>
       );
     })()}
+
+      {showConfirmResetModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-sm w-full p-6 text-center transform transition-all">
+            <h3 className="text-xl font-black text-brand-dark mb-4">
+              {tField('تعديل الحجز', 'Edit Preferences')}
+            </h3>
+            <p className="text-sm font-bold text-gray-500 mb-8 leading-relaxed">
+              {tField(
+                'هل أنتِ متأكدة من رغبتكِ في تعديل خيارات التوقيت وإعادة التقديم؟',
+                'Are you sure you want to review and modify your current timing schedule?'
+              )}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button 
+                onClick={confirmResetAction}
+                className="flex-1 px-4 py-2 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-xl font-black text-sm transition-colors border border-transparent"
+              >
+                {tField('نعم، تعديل الإرسال', 'Yes, modify')}
+              </button>
+              <button 
+                onClick={cancelResetAction}
+                className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-sm transition-colors cursor-pointer"
+              >
+                {tField('إلغاء', 'Cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
