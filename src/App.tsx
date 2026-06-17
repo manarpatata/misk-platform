@@ -80,8 +80,11 @@ export default function App() {
         setUser((prevUser) => {
           const metadata = session.user.user_metadata || {};
           const dbLevel = profile?.level || metadata.level || prevUser?.level || 'غير مصنف';
-          const dbRole = profile?.role || metadata.role || prevUser?.role || 'STUDENT';
-          const updatedRole = (dbRole as string).toUpperCase() as any;
+          let rawRole = profile?.role || metadata.role || prevUser?.role || 'STUDENT';
+          if (String(metadata.role).toUpperCase() === 'ADMIN' || String(profile?.role).toUpperCase() === 'ADMIN') {
+            rawRole = 'ADMIN';
+          }
+          const updatedRole = String(rawRole).toUpperCase() as any;
 
           if (!prevUser || prevUser.email !== session.user.email || prevUser.role !== updatedRole || prevUser.level !== dbLevel) {
              return {
@@ -97,7 +100,7 @@ export default function App() {
                 password: prevUser?.password || '',
                 phone: profile?.phone_number || metadata.phone || prevUser?.phone || '',
                 studentId: updatedRole === 'STUDENT' ? (profile?.username || metadata.student_id || prevUser?.studentId) : undefined,
-                employeeId: updatedRole === 'TEACHER' ? (profile?.username || metadata.employee_id || prevUser?.employeeId) : undefined,
+                employeeId: (updatedRole === 'TEACHER' || updatedRole === 'ADMIN') ? (profile?.username || metadata.employee_id || prevUser?.employeeId) : undefined,
                 username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || prevUser?.username || session.user.email?.split('@')[0],
                 college: profile?.college || metadata.college || prevUser?.college || 'OTHER',
                 cohort: profile?.cohort || metadata.cohort || prevUser?.cohort || '2023',
@@ -445,7 +448,11 @@ export default function App() {
 
         const metadata = data.user.user_metadata || {};
         const dbLevel = profile?.level || metadata.level || 'غير مصنف';
-        const dbRole = profile?.role || metadata.role || 'STUDENT';
+        let rawRole = profile?.role || metadata.role || 'STUDENT';
+        if (String(metadata.role).toUpperCase() === 'ADMIN' || String(profile?.role).toUpperCase() === 'ADMIN') {
+          rawRole = 'ADMIN';
+        }
+        const updatedRole = String(rawRole).toUpperCase() as any;
 
         setUser({
           id: data.user.id,
@@ -453,14 +460,14 @@ export default function App() {
           lastName: profile?.last_name || metadata.last_name || '',
           fatherName: profile?.father_name || metadata.father_name || '',
           grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
-          role: (dbRole as string).toUpperCase() as any,
+          role: updatedRole,
           email: data.user.email!,
           isEnrolled: false,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.email}`,
           password: passwordInput,
           phone: profile?.phone_number || metadata.phone || '',
-          studentId: dbRole === 'STUDENT' ? (profile?.username || metadata.student_id) : undefined,
-          employeeId: dbRole === 'TEACHER' ? (profile?.username || metadata.employee_id) : undefined,
+          studentId: updatedRole === 'STUDENT' ? (profile?.username || metadata.student_id) : undefined,
+          employeeId: (updatedRole === 'TEACHER' || updatedRole === 'ADMIN') ? (profile?.username || metadata.employee_id) : undefined,
           username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || data.user.email?.split('@')[0],
           college: profile?.college || metadata.college || 'OTHER',
           cohort: profile?.cohort || metadata.cohort || '2023',
