@@ -110,6 +110,7 @@ export default function App() {
                 absencesExcused: prevUser?.absencesExcused ?? 0,
                 absencesUnexcused: prevUser?.absencesUnexcused ?? 0,
                 sessionId: prevUser?.sessionId || '1',
+                enrollmentDetails: prevUser?.enrollmentDetails,
              } as any;
           }
           return prevUser;
@@ -285,7 +286,7 @@ export default function App() {
       }
     }
 
-    if (lower.includes('admin')) {
+    if (lower === 'demoadmin@itqan.com') {
       setUser({
         firstName: 'ريم',
         lastName: 'الخزيرية',
@@ -302,7 +303,7 @@ export default function App() {
       });
       setCurrentView('home');
       return;
-    } else if (lower.includes('teacher')) {
+    } else if (lower === 'demoteacher@itqan.com') {
       setUser({
         firstName: 'مريم',
         lastName: 'الهنائية',
@@ -320,7 +321,7 @@ export default function App() {
       });
       setCurrentView('home');
       return;
-    } else if (lower.includes('student_pg') || lower.includes('employee')) {
+    } else if (lower === 'demostudent_pg@itqan.com') {
       // SQU Student Fatima Al-Alawia (Postgraduate / Employee)
       setUser({
         firstName: 'فاطمة',
@@ -349,7 +350,7 @@ export default function App() {
       });
       setCurrentView('home');
       return;
-    } else if (lower.includes('student_ug')) {
+    } else if (lower === 'demostudent_ug@itqan.com') {
       // SQU Student Amal Al-Farsia (Undergraduate)
       setUser({
         firstName: 'أمل',
