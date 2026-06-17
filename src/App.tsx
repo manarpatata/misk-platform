@@ -207,6 +207,32 @@ export default function App() {
     return generateRealTeachers();
   });
 
+  useEffect(() => {
+    async function fetchUserRole() {
+      if (user && user.id && !user.id.includes('demo')) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (data) {
+          console.log("Fresh role from database:", data.role);
+          let rawRole = data.role || 'STUDENT';
+          if (String(data.role).toUpperCase() === 'ADMIN') {
+            rawRole = 'ADMIN';
+          }
+          const freshRole = String(rawRole).toUpperCase() as any;
+          if (user.role !== freshRole) {
+             setUser(prev => prev ? { ...prev, role: freshRole } : null);
+          }
+        }
+      }
+    }
+    fetchUserRole();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // --- Effects for Storage Persistence & RTL toggling ---
   useEffect(() => {
     localStorage.setItem('itqan_lang', lang);
