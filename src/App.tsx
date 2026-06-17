@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { generateRealStudents, generateRealTeachers } from './data/realSamples';
 import { 
   User, 
@@ -47,6 +48,55 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
+    // Quick verify of Supabase connection
+    const checkSupabase = async () => {
+      try {
+        const { data, error } = await supabase.from('leaderboard').select('*').limit(1); // placeholder check
+        if (error && error.code !== 'PGRST116') {
+          console.warn('Supabase connected but received error (likely missing table):', error.message);
+        } else {
+          console.log('✅ Supabase connected to project: xdfkcqgwppvobzcfwprf');
+        }
+      } catch (err) {
+        console.error('Failed to connect to Supabase backend:', err);
+      }
+    };
+    checkSupabase();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        // Only override if we don't already have the local user state populated 
+        // to avoid overwriting demo accounts or rich local state.
+        setUser((prevUser) => {
+          if (!prevUser || prevUser.email !== session.user.email) {
+             const metadata = session.user.user_metadata || {};
+             return {
+                firstName: metadata.first_name || session.user.email?.split('@')[0] || 'User',
+                lastName: metadata.last_name || '',
+                role: metadata.role || 'STUDENT',
+                email: session.user.email!,
+                isEnrolled: false,
+                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
+                password: '',
+                phone: metadata.phone || '',
+                money: 0,
+                gifts: [],
+                absencesExcused: 0,
+                absencesUnexcused: 0,
+             } as any;
+          }
+          return prevUser;
+        });
+      } else {
+        // Session logged out 
+        // We only clear if it was a supabase user (can check by simple heuristic, but let's just clear)
+        // Actually, we don't want to clear demo user if they just refreshed
+      }
+    });
+
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowScrollTop(true);
@@ -55,7 +105,10 @@ export default function App() {
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const scrollToTop = () => {
@@ -177,7 +230,7 @@ export default function App() {
   const t = () => translations[lang];
 
   // --- Login handler with rich initial data ---
-  const handleLogin = (emailAddress: string, passwordInput?: string) => {
+  const handleLogin = async (emailAddress: string, passwordInput?: string) => {
     const lower = emailAddress.toLowerCase();
     
     // Check if there is a custom registered user in local storage
@@ -223,6 +276,8 @@ export default function App() {
         avatar: 'https://picsum.photos/seed/admin_avatar/200/200',
         password: '123'
       });
+      setCurrentView('home');
+      return;
     } else if (lower.includes('teacher')) {
       setUser({
         firstName: 'مريم',
@@ -239,6 +294,8 @@ export default function App() {
         avatar: 'https://picsum.photos/seed/coach/200/200',
         password: '123'
       });
+      setCurrentView('home');
+      return;
     } else if (lower.includes('student_pg') || lower.includes('employee')) {
       // SQU Student Fatima Al-Alawia (Postgraduate / Employee)
       setUser({
@@ -266,7 +323,9 @@ export default function App() {
         avatar: 'https://picsum.photos/seed/fatima_avatar/100/100',
         password: '123'
       });
-    } else {
+      setCurrentView('home');
+      return;
+    } else if (lower.includes('student_ug')) {
       // SQU Student Amal Al-Farsia (Undergraduate)
       setUser({
         firstName: 'أمل',
@@ -295,12 +354,57 @@ export default function App() {
         avatar: 'https://picsum.photos/seed/amal_avatar/100/100',
         password: '123'
       });
+      setCurrentView('home');
+      return;
     }
 
-    setCurrentView('home');
+    if (!passwordInput) {
+      alert(lang === 'ar' ? 'يرجى إدخال كلمة المرور' : 'Please enter a password');
+      return;
+    }
+
+    // Try Supabase Auth First
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailAddress,
+        password: passwordInput,
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (data.user) {
+        const metadata = data.user.user_metadata || {};
+        setUser({
+          firstName: metadata.first_name || data.user.email?.split('@')[0] || 'User',
+          lastName: metadata.last_name || '',
+          role: metadata.role || 'STUDENT',
+          email: data.user.email!,
+          isEnrolled: false,
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.email}`,
+          password: passwordInput,
+          phone: metadata.phone || '',
+          money: 0,
+          gifts: [],
+          absencesExcused: 0,
+          absencesUnexcused: 0
+        } as any);
+        setCurrentView('home');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(lang === 'ar' ? 'حدث خطأ أثناء تسجيل الدخول' : 'An error occurred during login');
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error(e);
+    }
     setUser(null);
     setCurrentView('home');
   };

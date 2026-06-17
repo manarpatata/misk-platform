@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -107,7 +108,7 @@ export default function Register({
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (regRole === 'student') {
@@ -128,37 +129,66 @@ export default function Register({
       }
 
       const finalStudentId = studentId || Math.floor(100000 + Math.random() * 900000).toString();
-      const newUser = {
-        firstName: studentFirstName,
-        fatherName: studentFatherName,
-        grandfatherName: studentGrandfatherName,
-        lastName: studentLastName,
-        role: 'STUDENT',
-        email: studentEmail,
-        isEnrolled: false,
-        phone: studentPhone,
-        college: selectedCollege || 'OTHER',
-        cohort: studentCohort || '2023',
-        studentId: finalStudentId,
-        level: tField('غير مصنف', 'Not Categorized'),
-        username: finalStudentId,
-        password: studentPassword,
-        avatar: 'https://picsum.photos/seed/student_new/200/200',
-        cardPicName: cardPicName || 'student_id_upload.png',
-        voiceFileName: voiceFileName || (regFirstTime === 'yes' ? 'sample_voice.mp3' : ''),
-        approved: false, // starts as Not Checked
-        isNew: true
-      };
+      
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: studentEmail,
+          password: studentPassword,
+          options: {
+            data: {
+              first_name: studentFirstName,
+              last_name: studentLastName,
+              phone: studentPhone,
+              role: 'STUDENT',
+              student_id: finalStudentId,
+              college: selectedCollege || 'OTHER',
+            }
+          }
+        });
 
-      // Save both by email and by username
-      localStorage.setItem('registered_user_' + studentEmail.toLowerCase(), JSON.stringify(newUser));
-      localStorage.setItem('registered_user_' + finalStudentId.toLowerCase(), JSON.stringify(newUser));
-      if (setAllStudents) {
-        setAllStudents(prev => [...prev, newUser]);
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        const newUser = {
+          firstName: studentFirstName,
+          fatherName: studentFatherName,
+          grandfatherName: studentGrandfatherName,
+          lastName: studentLastName,
+          role: 'STUDENT',
+          email: studentEmail,
+          isEnrolled: false,
+          phone: studentPhone,
+          college: selectedCollege || 'OTHER',
+          cohort: studentCohort || '2023',
+          studentId: finalStudentId,
+          level: tField('غير مصنف', 'Not Categorized'),
+          username: finalStudentId,
+          password: studentPassword, // Optional: might want to remove this if strictly relying on supabase
+          avatar: 'https://picsum.photos/seed/student_new/200/200',
+          cardPicName: cardPicName || 'student_id_upload.png',
+          voiceFileName: voiceFileName || (regFirstTime === 'yes' ? 'sample_voice.mp3' : ''),
+          approved: false, // starts as Not Checked
+          isNew: true
+        };
+
+        // Save both by email and by username for demo purposes backwards-compatibility
+        localStorage.setItem('registered_user_' + studentEmail.toLowerCase(), JSON.stringify(newUser));
+        localStorage.setItem('registered_user_' + finalStudentId.toLowerCase(), JSON.stringify(newUser));
+        if (setAllStudents) {
+          setAllStudents(prev => [...prev, newUser]);
+        }
+        if (setUser && data.user) {
+          // If we auto-login:
+          // setUser(newUser);
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert(lang === 'ar' ? 'حدث خطأ أثناء التسجيل' : 'An error occurred during registration');
+        return;
       }
-      if (setUser) {
-        setUser(newUser);
-      }
+      
     } else {
       if (teacherPassword.length < 6) {
         alert(tField('يجب ألا تقل كلمة المرور عن 6 أحرف!', 'Password cannot be less than 6 characters!'));
@@ -177,37 +207,65 @@ export default function Register({
       }
 
       const finalTeacherId = teacherId || Math.floor(100000 + Math.random() * 900000).toString();
-      const newUser = {
-        firstName: teacherFirstName,
-        fatherName: teacherFatherName,
-        grandfatherName: teacherGrandfatherName,
-        lastName: teacherLastName,
-        role: 'TEACHER',
-        email: teacherEmail,
-        isEnrolled: false,
-        phone: teacherPhone,
-        college: teacherCollege === 'أخرى' ? (teacherManualCollege || 'Other') : (teacherCollege || 'Education'),
-        cohort: teacherCohort,
-        employeeId: finalTeacherId,
-        level: teacherLevel,
-        username: finalTeacherId,
-        password: teacherPassword,
-        avatar: 'https://picsum.photos/seed/teacher_new/200/200',
-        approved: false, // starts as Not Checked
-        isNew: true
-      };
+      
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: teacherEmail,
+          password: teacherPassword,
+          options: {
+            data: {
+              first_name: teacherFirstName,
+              last_name: teacherLastName,
+              phone: teacherPhone,
+              role: 'TEACHER',
+              employee_id: finalTeacherId,
+              college: teacherCollege === 'أخرى' ? (teacherManualCollege || 'Other') : (teacherCollege || 'Education'),
+            }
+          }
+        });
 
-      // Save both by email and by username
-      localStorage.setItem('registered_user_' + teacherEmail.toLowerCase(), JSON.stringify(newUser));
-      localStorage.setItem('registered_user_' + finalTeacherId.toLowerCase(), JSON.stringify(newUser));
-      if (setAllTeachers) {
-        setAllTeachers(prev => [...prev, newUser]);
-      }
-      if (setUser) {
-        setUser(newUser);
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        const newUser = {
+          firstName: teacherFirstName,
+          fatherName: teacherFatherName,
+          grandfatherName: teacherGrandfatherName,
+          lastName: teacherLastName,
+          role: 'TEACHER',
+          email: teacherEmail,
+          isEnrolled: false,
+          phone: teacherPhone,
+          college: teacherCollege === 'أخرى' ? (teacherManualCollege || 'Other') : (teacherCollege || 'Education'),
+          cohort: teacherCohort,
+          employeeId: finalTeacherId,
+          level: teacherLevel,
+          username: finalTeacherId,
+          password: teacherPassword,
+          avatar: 'https://picsum.photos/seed/teacher_new/200/200',
+          approved: false, // starts as Not Checked
+          isNew: true
+        };
+
+        // Save both by email and by username for local fallback
+        localStorage.setItem('registered_user_' + teacherEmail.toLowerCase(), JSON.stringify(newUser));
+        localStorage.setItem('registered_user_' + finalTeacherId.toLowerCase(), JSON.stringify(newUser));
+        if (setAllTeachers) {
+          setAllTeachers(prev => [...prev, newUser]);
+        }
+        if (setUser && data.user) {
+          // setUser(newUser);
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert(lang === 'ar' ? 'حدث خطأ أثناء التسجيل' : 'An error occurred during registration');
+        return;
       }
     }
 
+    alert(lang === 'ar' ? 'يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.' : 'Please check your email to verify your account.');
     navigate('success');
   };
 
