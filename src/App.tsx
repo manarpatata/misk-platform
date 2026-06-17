@@ -78,33 +78,35 @@ export default function App() {
           .single();
 
         setUser((prevUser) => {
-          if (!prevUser || prevUser.email !== session.user.email) {
-             const metadata = session.user.user_metadata || {};
-             const dbLevel = profile?.level || metadata.level || 'غير مصنف';
-             const dbRole = profile?.role || metadata.role || 'STUDENT';
-             
+          const metadata = session.user.user_metadata || {};
+          const dbLevel = profile?.level || metadata.level || prevUser?.level || 'غير مصنف';
+          const dbRole = profile?.role || metadata.role || prevUser?.role || 'STUDENT';
+          const updatedRole = (dbRole as string).toUpperCase() as any;
+
+          if (!prevUser || prevUser.email !== session.user.email || prevUser.role !== updatedRole || prevUser.level !== dbLevel) {
              return {
                 id: session.user.id,
-                firstName: profile?.first_name || metadata.first_name || session.user.email?.split('@')[0] || 'User',
-                lastName: profile?.last_name || metadata.last_name || '',
-                fatherName: profile?.father_name || metadata.father_name || '',
-                grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
-                role: (dbRole as string).toUpperCase() as any,
+                firstName: profile?.first_name || metadata.first_name || prevUser?.firstName || session.user.email?.split('@')[0] || 'User',
+                lastName: profile?.last_name || metadata.last_name || prevUser?.lastName || '',
+                fatherName: profile?.father_name || metadata.father_name || prevUser?.father_name || '',
+                grandfatherName: profile?.grandfather_name || metadata.grandfather_name || prevUser?.grandfather_name || '',
+                role: updatedRole,
                 email: session.user.email!,
-                isEnrolled: false,
-                avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
-                password: '',
-                phone: profile?.phone_number || metadata.phone || '',
-                studentId: dbRole === 'STUDENT' ? (profile?.username || metadata.student_id) : undefined,
-                employeeId: dbRole === 'TEACHER' ? (profile?.username || metadata.employee_id) : undefined,
-                username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || session.user.email?.split('@')[0],
-                college: profile?.college || metadata.college || 'OTHER',
-                cohort: profile?.cohort || metadata.cohort || '2023',
+                isEnrolled: prevUser?.isEnrolled ?? false,
+                avatar: prevUser?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
+                password: prevUser?.password || '',
+                phone: profile?.phone_number || metadata.phone || prevUser?.phone || '',
+                studentId: updatedRole === 'STUDENT' ? (profile?.username || metadata.student_id || prevUser?.studentId) : undefined,
+                employeeId: updatedRole === 'TEACHER' ? (profile?.username || metadata.employee_id || prevUser?.employeeId) : undefined,
+                username: profile?.username || metadata.username || metadata.student_id || metadata.employee_id || prevUser?.username || session.user.email?.split('@')[0],
+                college: profile?.college || metadata.college || prevUser?.college || 'OTHER',
+                cohort: profile?.cohort || metadata.cohort || prevUser?.cohort || '2023',
                 level: dbLevel,
-                money: 0,
-                gifts: [],
-                absencesExcused: 0,
-                absencesUnexcused: 0,
+                money: prevUser?.money ?? 0,
+                gifts: prevUser?.gifts || [],
+                absencesExcused: prevUser?.absencesExcused ?? 0,
+                absencesUnexcused: prevUser?.absencesUnexcused ?? 0,
+                sessionId: prevUser?.sessionId || '1',
              } as any;
           }
           return prevUser;
