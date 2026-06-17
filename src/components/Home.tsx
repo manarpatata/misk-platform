@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { toast } from '../lib/toast';
 
+import { getUserThemeStyles } from '../lib/theme';
+
 interface HomeProps {
   user: User | null;
   announcements?: Announcement[];

@@ -68,7 +68,7 @@ export default function Navbar({
               >
                 {t().mySession}
               </button>
-              {user.role === 'ADMIN' && (
+              {user.role.toUpperCase() === 'ADMIN' && (
                 <button 
                   className={`text-base font-bold transition-colors duration-200 ${currentView === 'controlpanel' ? 'text-brand-primary' : 'text-gray-500 hover:text-brand-dark'}`} 
                   onClick={() => navigate('controlpanel')}
@@ -142,7 +142,7 @@ export default function Navbar({
               >
                 {t().mySession}
               </button>
-              {user.role === 'ADMIN' && (
+              {user.role.toUpperCase() === 'ADMIN' && (
                 <button 
                   className={`text-lg font-black ${currentView === 'controlpanel' ? 'text-brand-primary' : 'text-gray-500'}`} 
                   onClick={() => { navigate('controlpanel'); setMobileMenuOpen(false); }}

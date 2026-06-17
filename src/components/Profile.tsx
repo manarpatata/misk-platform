@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from '../lib/toast';
+import { getUserThemeStyles } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 import { Camera, GraduationCap, CheckCircle, Phone, Mail, Lock, BookOpen, ShieldCheck, UserCheck } from 'lucide-react';
@@ -181,6 +182,8 @@ export default function Profile({
     return lvlKey;
   };
 
+  const themeStyle = getUserThemeStyles(user);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 select-none text-start">
       
@@ -188,7 +191,7 @@ export default function Profile({
       <div className="bg-white rounded-3xl border border-brand-primary/10 shadow-xl overflow-hidden relative">
         
         {/* Banner/Cover Background */}
-        <div className="bg-gradient-to-r from-brand-primary to-amber-500 h-32 w-full absolute top-0 left-0 right-0 pointer-events-none" />
+        <div className={`bg-gradient-to-br ${themeStyle.bg} h-32 w-full absolute top-0 left-0 right-0 pointer-events-none`} />
 
         {/* Content Body */}
         <div className="relative z-10 pt-16 px-6 sm:px-10 pb-10">

@@ -88,7 +88,7 @@ export default function App() {
                 lastName: profile?.last_name || metadata.last_name || '',
                 fatherName: profile?.father_name || metadata.father_name || '',
                 grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
-                role: dbRole,
+                role: (dbRole as string).toUpperCase() as any,
                 email: session.user.email!,
                 isEnrolled: false,
                 avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.email}`,
@@ -449,7 +449,7 @@ export default function App() {
           lastName: profile?.last_name || metadata.last_name || '',
           fatherName: profile?.father_name || metadata.father_name || '',
           grandfatherName: profile?.grandfather_name || metadata.grandfather_name || '',
-          role: dbRole,
+          role: (dbRole as string).toUpperCase() as any,
           email: data.user.email!,
           isEnrolled: false,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.email}`,
@@ -498,14 +498,66 @@ export default function App() {
       // Also ensure that the admin observes actual timing coordinates in directory collection
       if (user.role === 'TEACHER') {
         setAllTeachers(prev => {
-          const arr = prev.map(t => t.email === user.email ? { ...t, isEnrolled: true, enrollmentDetails: updatedDetails } : t);
-          return arr;
+          if (!prev.find(t => t.email === user.email)) {
+            return [...prev, { ...user, isEnrolled: true, enrollmentDetails: updatedDetails }];
+          }
+          return prev.map(t => t.email === user.email ? { ...t, isEnrolled: true, enrollmentDetails: updatedDetails } : t);
         });
       } else {
         setAllStudents(prev => {
-          const arr = prev.map(s => s.email === user.email ? { ...s, isEnrolled: true, enrollmentDetails: updatedDetails } : s);
-          return arr;
+          if (!prev.find(s => s.email === user.email)) {
+            return [...prev, { ...user, isEnrolled: true, enrollmentDetails: updatedDetails }];
+          }
+          return prev.map(s => s.email === user.email ? { ...s, isEnrolled: true, enrollmentDetails: updatedDetails } : s);
         });
+      }
+
+      // Store user registration into the specific semester registry database
+      if (semesterId) {
+        setSemesters(prev => prev.map(sem => {
+          if (sem.id === semesterId) {
+            const regs = sem.registrations || { students: [], teachers: [] };
+             const regPayload = {
+               id: user.id || Math.random().toString(),
+               firstName: user.firstName,
+               lastName: user.lastName,
+               role: user.role,
+               email: user.email,
+               phone: user.phone,
+               college: user.college,
+               cohort: user.cohort,
+               level: user.level,
+               timings: details.timings,
+               studentType: details.studentType,
+               teacherFormat: details.teacherFormat,
+               isLastSemester: details.isLastSemester,
+               notes: details.notes,
+               approved: false,
+               registrationDate: details.submittedAt || new Date().toISOString()
+             };
+             
+             if (user.role === 'TEACHER') {
+               const existingIdx = regs.teachers.findIndex((t: any) => t.email === user.email);
+               const newTeachers = [...regs.teachers];
+               if (existingIdx !== -1) {
+                 newTeachers[existingIdx] = regPayload;
+               } else {
+                 newTeachers.push(regPayload);
+               }
+               return { ...sem, registrations: { ...regs, teachers: newTeachers } };
+             } else {
+               const existingIdx = regs.students.findIndex(s => s.email === user.email);
+               const newStudents = [...regs.students];
+               if (existingIdx !== -1) {
+                 newStudents[existingIdx] = regPayload as any;
+               } else {
+                 newStudents.push(regPayload as any);
+               }
+               return { ...sem, registrations: { ...regs, students: newStudents } };
+             }
+          }
+          return sem;
+        }));
       }
     }
   };
@@ -574,7 +626,7 @@ export default function App() {
           />
         );
       case 'controlpanel':
-        if (!user || user.role !== 'ADMIN') {
+        if (!user || user.role.toUpperCase() !== 'ADMIN') {
           setCurrentView('home');
           return null;
         }

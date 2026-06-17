@@ -1964,8 +1964,13 @@ export default function AssignmentDashboard({
                             </span>
                           </td>
 
-                          <td className="px-5 text-center text-slate-500 font-semibold">
-                            {displayPreferredFormat(st)}
+                          <td className="px-5 text-center text-slate-500 font-semibold gap-1.5 flex flex-col items-center justify-center pt-3">
+                            <span>{displayPreferredFormat(st)}</span>
+                            {st.enrollmentDetails?.isLastSemester || st.isLastSemester ? (
+                              <span className="bg-red-100 text-red-800 text-[9px] font-black px-2 py-0.5 rounded-full border border-red-200">
+                                {lang === 'ar' ? 'الفصل الأخير (خريجة)' : 'Final Semester'}
+                              </span>
+                            ) : null}
                           </td>
 
                           <td className="px-5 text-start text-[11px] text-slate-600 min-w-[200px] max-w-[350px]">
@@ -2770,6 +2775,11 @@ export default function AssignmentDashboard({
                             </div>
 
                             <div className="flex gap-2">
+                              {stud.enrollmentDetails?.isLastSemester || stud.isLastSemester ? (
+                                <span className="text-[10px] bg-red-100 text-red-800 font-extrabold px-2.5 py-0.5 rounded border border-red-200 mt-1">
+                                  {lang === 'ar' ? 'خريجة' : 'Final Sem'}
+                                </span>
+                              ) : null}
                               <span className="text-[10px] bg-red-50 text-red-650 font-extrabold px-2.5 py-0.5 rounded border border-red-100 mt-1">
                                 {stud.level}
                               </span>
@@ -3050,11 +3060,22 @@ export default function AssignmentDashboard({
                 <div className="bg-amber-500/5 border border-amber-100 rounded-3xl p-4.5 space-y-4 text-xs font-bold text-slate-700">
                   
                   {/* Formats prefered */}
-                  <div>
-                    <span className="text-slate-450 block text-[10px] uppercase mb-1">{lang === 'ar' ? 'نمط التلقي المفضل' : 'Preferred Lecture Delivery Format'}</span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-amber-200 rounded-xl text-amber-900 font-extrabold text-[11px] shadow-3xs">
-                      {displayPreferredFormat(infoModalStudent)}
-                    </span>
+                  <div className="flex gap-4 items-center">
+                    <div>
+                      <span className="text-slate-450 block text-[10px] uppercase mb-1">{lang === 'ar' ? 'نمط التلقي المفضل' : 'Preferred Lecture Delivery Format'}</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-amber-200 rounded-xl text-amber-900 font-extrabold text-[11px] shadow-3xs">
+                        {displayPreferredFormat(infoModalStudent)}
+                      </span>
+                    </div>
+
+                    {(infoModalStudent.enrollmentDetails?.isLastSemester || infoModalStudent.isLastSemester) && (
+                      <div>
+                        <span className="text-slate-450 block text-[10px] uppercase mb-1">{lang === 'ar' ? 'حالة التخرج' : 'Graduation Status'}</span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-200 rounded-xl text-red-800 font-extrabold text-[11px] shadow-3xs">
+                          {lang === 'ar' ? 'الفصل الأخير (طالبة خريجة)' : 'Final Semester'}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Timings */}
